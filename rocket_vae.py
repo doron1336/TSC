@@ -36,14 +36,14 @@ trainloader = DataLoader(dataset=data_set, batch_size=1024)
 D_in = data_set.x.shape[1]
 H = 50
 H2 = 12
-latent_dim = 3
+latent_dim = 2
 model = Autoencoder(D_in, H, H2, latent_dim).to(device)
 model.apply(weights_init_uniform_rule)
 optimizer = optim.Adam(model.parameters(), lr=1e-3)
 loss_mse = customLoss()
 
 # Train Model
-epochs = 2000
+epochs = 2500
 log_interval = 50
 val_losses = []
 train_losses = []
@@ -108,17 +108,18 @@ with torch.no_grad():
         logvar_result = torch.cat(logvar_output, dim=0)
 
 print(mu_result.shape)
-torch.save(mu_result, 'firstTry_latent5.pt')
+# torch.save(mu_result, 'firstTry_latent5.pt')
 # ax = plt.axes(projection='3d')
 
 
-vae_results = torch.load('firstTry_latent5.pt')
+# vae_results = torch.load('firstTry_latent5.pt')
+vae_results = mu_result
 zdata = vae_results[:, 0].cpu().numpy()
 xdata = vae_results[:, 1].cpu().numpy()
-ydata = vae_results[:, 2].cpu().numpy()
+# ydata = vae_results[:, 2].cpu().numpy()
 ax = plt.axes(projection="3d")
 
-ax.scatter(xdata, ydata, zdata, c=dataMean, cmap='Blues')
+ax.scatter(xdata, zdata, c=dataMean, cmap='Blues')
 plt.show()
 
 # Data for three-dimensional scattered points
