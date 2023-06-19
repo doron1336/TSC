@@ -6,6 +6,8 @@ import h5py
 import pandas as pd
 from sktime.datasets import load_osuleaf
 from sktime.utils.validation.panel import check_X
+from models.minirocket import fit, transform
+from sklearn.linear_model import RidgeClassifierCV
 
 
 x_train, y_train = load_osuleaf(split="train", return_X_y=True)
@@ -32,45 +34,57 @@ label_dictionary = {1: "cyl", 2: "hook",
 
 label = np.repeat([1], 30)
 cyl_ch1_df = pd.DataFrame(mat['cyl_ch1'])
-cyl_ch1_df['label'] = label
 cyl_ch2_df = pd.DataFrame(mat['cyl_ch2'])
-train_cyl = cyl_ch1_df.iloc[:25]
-test_cyl = cyl_ch1_df.iloc[25:]
+cyl_final = pd.concat([cyl_ch1_df, cyl_ch2_df], axis=1)
+cyl_final['label'] = label
+# cyl_ch1_df['label'] = label
+train_cyl = cyl_final.iloc[:25]
+test_cyl = cyl_final.iloc[25:]
 
 label = np.repeat([2], 30)
 hook_ch1_df = pd.DataFrame(mat['hook_ch1'])
-hook_ch1_df['label'] = label
 hook_ch2_df = pd.DataFrame(mat['hook_ch2'])
-train_hook = hook_ch1_df.iloc[:25]
-test_hook = hook_ch1_df.iloc[25:]
+hook_final = pd.concat([hook_ch1_df, hook_ch2_df], axis=1)
+hook_final['label'] = label
+# hook_ch1_df['label'] = label
+train_hook = hook_final.iloc[:25]
+test_hook = hook_final.iloc[25:]
 
 label = np.repeat([3], 30)
 tip_ch1_df = pd.DataFrame(mat['tip_ch1'])
-tip_ch1_df['label'] = label
 tip_ch2_df = pd.DataFrame(mat['tip_ch2'])
-train_tip = tip_ch1_df.iloc[:25]
-test_tip = tip_ch1_df.iloc[25:]
+tip_final = pd.concat([tip_ch1_df, tip_ch2_df], axis=1)
+tip_final['label'] = label
+# tip_ch1_df['label'] = label
+train_tip = tip_final.iloc[:25]
+test_tip = tip_final.iloc[25:]
 
 label = np.repeat([4], 30)
 palm_ch1_df = pd.DataFrame(mat['palm_ch1'])
-palm_ch1_df['label'] = label
 palm_ch2_df = pd.DataFrame(mat['palm_ch2'])
-train_palm = palm_ch1_df.iloc[:25]
-test_palm = palm_ch1_df.iloc[25:]
+palm_final = pd.concat([palm_ch1_df, palm_ch2_df], axis=1)
+palm_final['label'] = label
+# palm_ch1_df['label'] = label
+train_palm = palm_final.iloc[:25]
+test_palm = palm_final.iloc[25:]
 
 label = np.repeat([5], 30)
 spher_ch1_df = pd.DataFrame(mat['spher_ch1'])
-spher_ch1_df['label'] = label
 spher_ch2_df = pd.DataFrame(mat['spher_ch2'])
-train_spher = spher_ch1_df.iloc[:25]
-test_spher = spher_ch1_df.iloc[25:]
+spher_final = pd.concat([spher_ch1_df, spher_ch2_df], axis=1)
+spher_final['label'] = label
+# spher_ch1_df['label'] = label
+train_spher = spher_final.iloc[:25]
+test_spher = spher_final.iloc[25:]
 
 label = np.repeat([6], 30)
 lat_ch1_df = pd.DataFrame(mat['lat_ch1'])
-lat_ch1_df['label'] = label
 lat_ch2_df = pd.DataFrame(mat['lat_ch2'])
-train_lat = lat_ch1_df.iloc[:25]
-test_lat = lat_ch1_df.iloc[25:]
+lat_final = pd.concat([lat_ch1_df, lat_ch2_df], axis=1)
+lat_final['label'] = label
+# lat_ch1_df['label'] = label
+train_lat = lat_final.iloc[:25]
+test_lat = lat_final.iloc[25:]
 
 train_set = pd.concat([train_cyl, train_hook, train_tip,
                       train_palm, train_spher, train_lat], axis=0)
@@ -80,9 +94,26 @@ test_set = pd.concat([test_cyl, test_hook, test_tip,
 
 train_set = train_set.sample(frac=1)  # shuffles the rows
 # print(train_set)
-x_train = train_set.iloc[:, :3000].to_numpy().astype(np.float32)
+x_train = train_set.iloc[:, :6000].to_numpy().astype(np.float32)
 y_train = train_set["label"].to_numpy()
-print(type(x_train))
-print(x_train.shape)
-print(type(y_train))
-print(y_train.shape)
+
+x_test = test_set.iloc[:, :6000].to_numpy().astype(np.float32)
+y_test = test_set["label"].to_numpy()
+# print(type(x_train))
+# print(x_train.shape)
+# print(type(y_train))
+# print(y_train.shape)
+
+parameters = fit(x_train)
+X_train_transform = transform(x_train, parameters)
+# print(X_train_transform)
+
+classifier = RidgeClassifierCV(alphas=np.logspace(-3, 3, 10))
+classifier.fit(X_train_transform, y_train)
+
+X_test_transform = transform(x_test, parameters)
+print(X_test_transform)
+print(X_test_transform.shape)
+
+predictions = classifier.score(X_test_transform, y_test)
+print(predictions)
