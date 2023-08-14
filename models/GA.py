@@ -84,12 +84,15 @@ def initilization_of_population(size, n_feat):
 
 def fitness_score(population, X_train, X_test, Y_train, Y_test):
     scores = []
+    scores_forrank = []
     for chromosome in population:
         logmodel.fit(X_train[:, chromosome], Y_train)
         predictions = logmodel.predict(X_test[:, chromosome])
         scores.append(accuracy_score(Y_test, predictions))
+        scores_forrank.append(accuracy_score(Y_test, predictions) -
+                              np.log(np.count_nonzero(chromosome)))
     scores, population = np.array(scores), np.array(population)
-    inds = np.argsort(scores)
+    inds = np.argsort(scores_forrank)
     return list(scores[inds][::-1]), list(population[inds, :][::-1])
 
 
