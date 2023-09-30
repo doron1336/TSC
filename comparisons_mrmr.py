@@ -23,14 +23,19 @@ with open("X_train_transform", "rb") as f:
 with open("HandMovementDATA_ytrain", "rb") as f:
     y_train = pkl.load(f)
 
-n_features_to_keep = 50
-selected_features = mrmr_classif(X=pd.DataFrame(
-    Rocket_output_train), y=pd.Series(y_train), K=n_features_to_keep)
-print(selected_features)
-classifier_selected = RidgeClassifierCV(alphas=np.logspace(-3, 3, 10))
 
-classifier_selected.fit(Rocket_output_train[:, selected_features], y_train)
-predictions = classifier_selected.score(
-    Rocket_output_test[:, selected_features], y_test)
-print(
-    f"mRMR score with {n_features_to_keep} selected features", predictions)
+def mrmr_ranking(train, target, num_of_features):
+    return mrmr_classif(X=pd.DataFrame(train), y=pd.Series(target), K=num_of_features)
+
+
+# n_features_to_keep = 50
+# selected_features = mrmr_classif(X=pd.DataFrame(
+#     Rocket_output_train), y=pd.Series(y_train), K=n_features_to_keep)
+# print(selected_features)
+
+# classifier_selected = RidgeClassifierCV(alphas=np.logspace(-3, 3, 10))
+# classifier_selected.fit(Rocket_output_train[:, selected_features], y_train)
+# predictions = classifier_selected.score(
+#     Rocket_output_test[:, selected_features], y_test)
+# print(
+#     f"mRMR score with {n_features_to_keep} selected features", predictions)

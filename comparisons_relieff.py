@@ -120,25 +120,32 @@ class ReliefF(object):
         return self.transform(X)
 
 
-n_features_to_keep = 50
-with open("X_test_transform", "rb") as f:
-    Rocket_output_test = pkl.load(f)
-with open("HandMovementDATA_ytest", "rb") as f:
-    y_test = pkl.load(f)
+def relieff_ranking(train, target, num_of_features):
+    fs = ReliefF(n_neighbors=110, n_features_to_keep=num_of_features)
+    X_train, selected_features = fs.fit_transform(
+        train, np.asarray(target).astype('int'))
+    return selected_features
 
-with open("X_train_transform", "rb") as f:
-    Rocket_output_train = pkl.load(f)
-with open("HandMovementDATA_ytrain", "rb") as f:
-    y_train = pkl.load(f)
-fs = ReliefF(n_neighbors=110, n_features_to_keep=n_features_to_keep)
-print(Rocket_output_train.shape)
-X_train, selected_features = fs.fit_transform(
-    Rocket_output_train, np.asarray(y_train).astype('int'))
 
-classifier_selected = RidgeClassifierCV(alphas=np.logspace(-3, 3, 10))
+# n_features_to_keep = 50
+# with open("X_test_transform", "rb") as f:
+#     Rocket_output_test = pkl.load(f)
+# with open("HandMovementDATA_ytest", "rb") as f:
+#     y_test = pkl.load(f)
 
-classifier_selected.fit(X_train, y_train)
-predictions = classifier_selected.score(
-    Rocket_output_test[:, selected_features], y_test)
-print(
-    f"RelifF score with {n_features_to_keep} selected features", predictions)
+# with open("X_train_transform", "rb") as f:
+#     Rocket_output_train = pkl.load(f)
+# with open("HandMovementDATA_ytrain", "rb") as f:
+#     y_train = pkl.load(f)
+# fs = ReliefF(n_neighbors=110, n_features_to_keep=n_features_to_keep)
+# print(Rocket_output_train.shape)
+# X_train, selected_features = fs.fit_transform(
+#     Rocket_output_train, np.asarray(y_train).astype('int'))
+
+
+# classifier_selected = RidgeClassifierCV(alphas=np.logspace(-3, 3, 10))
+# classifier_selected.fit(X_train, y_train)
+# predictions = classifier_selected.score(
+#     Rocket_output_test[:, selected_features], y_test)
+# print(
+#     f"RelifF score with {n_features_to_keep} selected features", predictions)

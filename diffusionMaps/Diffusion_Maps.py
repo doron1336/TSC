@@ -51,12 +51,10 @@ def calcEpsilon(dataList, eps_type, epsilon_factor=5):
         idist = dist+np.identity(len(dist))
         eps_maxmin = np.max(np.min(idist, axis=0))
         epsilon = eps_maxmin*epsilon_factor
-        print(epsilon)
     elif eps_type == 'mean':
         # option #2 - epsilon= mean(distance)
         eps_mean = np.mean(dist)
         epsilon = eps_mean * epsilon_factor
-        print(epsilon)
 
     else:
         raise KeyError('eps_type should be either maxmin or mean')
@@ -119,10 +117,10 @@ def diffusionMapping(dataList, alpha, eps_type, t, **kwargs):
 
 
 #
-os.chdir(r"C:\Users\doron\OneDrive\Desktop\thesis\TSC\handMovement\Database")
+os.chdir(r"C:\Users\doron\OneDrive\Desktop\thesis\TSC\handMovement\Database\osuleaf")
 # data = list(np.genfromtxt("JM_FLAT.csv", delimiter=','))  # path to csv
 
-with open("JM_FLAT", "rb") as f:
+with open("JM_FLAT_osuleaf", "rb") as f:
     data = pkl.load(f)
 
 print(data.shape)
@@ -149,65 +147,84 @@ sequence_containing_z_vals = coordinates[:, 2]
 sc = ax.scatter(sequence_containing_x_vals,
                 sequence_containing_y_vals, sequence_containing_z_vals, c=avg_jm, cmap='viridis')
 plt.colorbar(sc)
-# plt.show()
-# x = psi[:, 1]  # dm cords
-# y = psi[:, 2]  # dm cords
-# fig, ax = plt.subplots()
-# labels = ['image {0}'.format(i + 1) for i in range(len(x))]
-# plt.figure()
-# plt.scatter(vecs[:, 2], vecs[:, 4])
-# for label, xpt, ypt in zip(labels, x, y):
-#     plt.annotate(
-#         "",
-#         xy=(xpt, ypt), xytext=(-20, 20),
-#         textcoords='offset points', ha='right', va='bottom',
-#         bbox=dict(boxstyle='round,pad=0.5', fc='white', alpha=0.5),
-#     )
-# ax.plot(x, y, 'bo')
-# plt.show()
+plt.show()
 
 # K-Means
 
-kmeans = KMeans(init="random", n_clusters=50,
-                max_iter=300, n_init=5)
-label = kmeans.fit_predict(coordinates)
-u_labels = np.unique(label)
+# kmeans = KMeans(init="random", n_clusters=50,
+#                 max_iter=300, n_init=5)
+# label = kmeans.fit_predict(coordinates)
+# u_labels = np.unique(label)
 
-fig = plt.figure(figsize=(12, 12))
-ax = fig.add_subplot(projection='3d')
+# fig = plt.figure(figsize=(12, 12))
+# ax = fig.add_subplot(projection='3d')
 
-for i in u_labels:
-    idx = np.where(label == i)
-    ax.scatter(sequence_containing_x_vals[idx], sequence_containing_y_vals[idx],
-               sequence_containing_z_vals[idx], label=i)
-plt.legend()
+# for i in u_labels:
+#     idx = np.where(label == i)
+#     ax.scatter(sequence_containing_x_vals[idx], sequence_containing_y_vals[idx],
+#                sequence_containing_z_vals[idx], label=i)
+# plt.legend()
 # plt.show()
 
 # Pick best features
-features = []
-for i in u_labels:
-    arr = np.copy(avg_jm)
-    indices_to_exclude = np.where(label == i)
-    value_to_set = -10
-    mask = np.ones_like(arr, dtype=bool)
-    mask[indices_to_exclude] = False
-    arr[mask] = value_to_set
-    features.append(np.argmax(arr))
+# features = []
+# for i in u_labels:
+#     arr = np.copy(avg_jm)
+#     indices_to_exclude = np.where(label == i)
+#     value_to_set = -10
+#     mask = np.ones_like(arr, dtype=bool)
+#     mask[indices_to_exclude] = False
+#     arr[mask] = value_to_set
+#     features.append(np.argmax(arr))
+
+
+def dm_ranking(data, num_of_features, q):
+
+    avg_jm = np.mean(data, axis=1)
+    eps_type = 'mean'  # mean' #or maxmin
+    alpha = 1
+    vecs, eigs, coordinates, dataList, epsilon = diffusionMapping(
+        data, alpha, eps_type, 1, dim=3)  # dim - number of diffusion coordinates computed
+
+    # Pick best features
+    sorted_indices = np.argsort(-avg_jm)
+    # print(sorted_indices)
+    # Calculate the index corresponding to the q percentile
+    index_q_percentile = int(len(data) * q / 100)
+    top_q_percent_indices = sorted_indices[:index_q_percentile]
+
+    # K-Means
+    kmeans = KMeans(init="random", n_clusters=num_of_features,
+                    max_iter=300, n_init=5)
+    label = kmeans.fit_predict(coordinates[top_q_percent_indices])
+    u_labels = np.unique(label)
+    # Pick best features
+    selected_features = []
+    for i in u_labels:
+        arr = np.copy(avg_jm)
+        indices_to_exclude = np.where(label == i)
+        value_to_set = -10
+        mask = np.ones_like(arr, dtype=bool)
+        mask[indices_to_exclude] = False
+        arr[mask] = value_to_set
+        selected_features.append(np.argmax(arr))
+    return selected_features
+
 
 # Classification
 
-classifier_selected_dm = RidgeClassifierCV(alphas=np.logspace(-3, 3, 10))
-with open("X_train_transform", "rb") as f:
-    X_train_transform = pkl.load(f)
-with open("X_test_transform", "rb") as f:
-    X_test_transform = pkl.load(f)
-with open("HandMovementDATA_ytrain", "rb") as f:
-    y_train = pkl.load(f)
-with open("HandMovementDATA_ytest", "rb") as f:
-    y_test = pkl.load(f)
+# classifier_selected_dm = RidgeClassifierCV(alphas=np.logspace(-3, 3, 10))
+# with open("X_train_transform", "rb") as f:
+#     X_train_transform = pkl.load(f)
+# with open("X_test_transform", "rb") as f:
+#     X_test_transform = pkl.load(f)
+# with open("HandMovementDATA_ytrain", "rb") as f:
+#     y_train = pkl.load(f)
+# with open("HandMovementDATA_ytest", "rb") as f:
+#     y_test = pkl.load(f)
 
-classifier_selected_dm.fit(X_train_transform[:, features], y_train)
-predictions = classifier_selected_dm.score(
-    X_test_transform[:, features], y_test)
-print(
-    f"Rocket score with {len(features)} dbscan selected features", predictions)
+# classifier_selected_dm.fit(X_train_transform[:, features], y_train)
+# predictions = classifier_selected_dm.score(
+#     X_test_transform[:, features], y_test)
+# print(
+#     f"Rocket score with {len(features)} dbscan selected features", predictions)

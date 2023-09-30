@@ -68,6 +68,10 @@ def generateJMVector(X_train_transform, gt):
 
 
 def JM_flat(X_train_transform, gt):
+    # ment to normalize the class names (start at 0 always)
+    gt = [int(i) for i in gt]
+    if np.min(gt) != 0:
+        gt = [str(int(i)-1) for i in gt]
     flatArr = []
     meanArr = []
     for cls in range(len(np.unique(gt))):
