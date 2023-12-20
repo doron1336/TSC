@@ -16,19 +16,17 @@ The top diffusion maps coordinates are typically used to embed the original data
 
 Last modified by Neta Rabin on 2019/02/27.
 '''
-
-from ReliefF import ReliefF
-import numpy as np
-import sys
-from numpy import linalg as LA
-import matplotlib.pyplot as plt
-import math
-from scipy.spatial.distance import pdist, squareform
-import os
-import pickle as pkl
-import matplotlib.pyplot as plt
-from sklearn.cluster import KMeans
+# Add the parent directory of mypackage to the Python path
 from sklearn.linear_model import RidgeClassifierCV
+from sklearn.cluster import KMeans
+import pickle as pkl
+import sys
+import os
+from scipy.spatial.distance import pdist, squareform
+import matplotlib.pyplot as plt
+from numpy import linalg as LA
+import numpy as np
+import utils.JM as JM
 
 
 '''
@@ -116,56 +114,6 @@ def diffusionMapping(dataList, alpha, eps_type, t, **kwargs):
     return (vecs, eigs, diffusion_coordinates.T, dataList, epsilon)
 
 
-#
-os.chdir(r"C:\Users\doron\OneDrive\Desktop\thesis\TSC\handMovement\Database\osuleaf")
-# data = list(np.genfromtxt("JM_FLAT.csv", delimiter=','))  # path to csv
-
-with open("JM_FLAT_osuleaf", "rb") as f:
-    data = pkl.load(f)
-
-print(data.shape)
-avg_jm = np.mean(data, axis=1)
-print(avg_jm.shape)
-'''
-Plot the 2nd and 4th diffusion maps coordinates, they give nice results for this small example.
-Usually you should try to plot the 2nd, 3rd,4th.. and so diffusion maps coordinates.   
-'''
-
-#
-eps_type = 'mean'  # mean' #or maxmin
-alpha = 1
-vecs, eigs, coordinates, dataList, epsilon = diffusionMapping(
-    data, alpha, eps_type, 1, dim=3)  # dim - number of diffusion coordinates computed
-print(coordinates.shape)
-fig = plt.figure(figsize=(12, 12))
-ax = fig.add_subplot(projection='3d')
-
-sequence_containing_x_vals = coordinates[:, 0]
-sequence_containing_y_vals = coordinates[:, 1]
-sequence_containing_z_vals = coordinates[:, 2]
-
-sc = ax.scatter(sequence_containing_x_vals,
-                sequence_containing_y_vals, sequence_containing_z_vals, c=avg_jm, cmap='viridis')
-plt.colorbar(sc)
-plt.show()
-
-# K-Means
-
-# kmeans = KMeans(init="random", n_clusters=50,
-#                 max_iter=300, n_init=5)
-# label = kmeans.fit_predict(coordinates)
-# u_labels = np.unique(label)
-
-# fig = plt.figure(figsize=(12, 12))
-# ax = fig.add_subplot(projection='3d')
-
-# for i in u_labels:
-#     idx = np.where(label == i)
-#     ax.scatter(sequence_containing_x_vals[idx], sequence_containing_y_vals[idx],
-#                sequence_containing_z_vals[idx], label=i)
-# plt.legend()
-# plt.show()
-
 # Pick best features
 # features = []
 # for i in u_labels:
@@ -184,7 +132,7 @@ def dm_ranking(data, num_of_features, q):
     eps_type = 'mean'  # mean' #or maxmin
     alpha = 1
     vecs, eigs, coordinates, dataList, epsilon = diffusionMapping(
-        data, alpha, eps_type, 1, dim=3)  # dim - number of diffusion coordinates computed
+        data, alpha, eps_type, 1, dim=2)  # dim - number of diffusion coordinates computed
 
     # Pick best features
     sorted_indices = np.argsort(-avg_jm)
@@ -208,7 +156,7 @@ def dm_ranking(data, num_of_features, q):
         mask[indices_to_exclude] = False
         arr[mask] = value_to_set
         selected_features.append(np.argmax(arr))
-    return selected_features
+    return selected_features, coordinates
 
 
 # Classification
