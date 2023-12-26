@@ -3,45 +3,54 @@ import os
 import pickle
 import numpy as np
 
-# Load the Data
-os.chdir(r"C:\Users\doron\OneDrive\Desktop\thesis\TSC\handMovement\Database\osuleaf")
+
+def average_of_list(list):
+    list_to_use = np.array(list)
+
+    return np.sum(list_to_use,0) / len(list_to_use)
+
+mrmr, fisher, dm, random, relief = [], [], [], [], []
+for dir in range(1,5):
+    print("directory ", dir)
+    # Load the Data
+    os.chdir(f"C:\\Users\\doron\\OneDrive\\Desktop\\thesis\\TSC\\handMovement\\Database\\handmovement2\\{dir}")
+    with open("mrmr_ga_before", 'rb') as file:
+        mrmr.append(pickle.load(file))
+    with open("fisher_ga_before", 'rb') as file:
+        fisher.append(pickle.load(file))
+    with open("dm_ga_before", 'rb') as file:
+        dm.append(pickle.load(file))
+    with open("random_ga_before", 'rb') as file:
+        random.append(pickle.load(file))
+    with open("relief_ga_before", 'rb') as file:
+        relief.append(pickle.load(file))
+    
+mrmr_avg = average_of_list(mrmr)
+fisher_avg = average_of_list(fisher)
+dm_avg = average_of_list(dm)
+random_avg = average_of_list(random)
+relief_avg = average_of_list(relief)
 
 # miniRocket section
 # filename_train = os.path.abspath(".") + "\\osuleaf_train"
 # filename_test = os.path.abspath(".") + "\\osuleaf_test"
 
-with open("mrmr_selected", 'rb') as file:
-    mrmr_selected = pickle.load(file)
-with open("fisher_selected", 'rb') as file:
-    fisher_selected = pickle.load(file)
-with open("dm_selected", 'rb') as file:
-    dm_selected = pickle.load(file)
-with open("random_selected", 'rb') as file:
-    random_selected = pickle.load(file)
-with open("relief_selected", 'rb') as file:
-    relief_selected = pickle.load(file)
+# with open("mrmr_selected", 'rb') as file:
+#     mrmr_selected = pickle.load(file)
+# with open("fisher_selected", 'rb') as file:
+#     fisher_selected = pickle.load(file)
+# with open("dm_selected", 'rb') as file:
+#     dm_selected = pickle.load(file)
+# with open("random_selected", 'rb') as file:
+#     random_selected = pickle.load(file)
+# with open("relief_selected", 'rb') as file:
+#     relief_selected = pickle.load(file)
 
 with open("dm_coordinates", 'rb') as file:
     dm_coordinates = pickle.load(file)
 with open("avg_jm", 'rb') as file:
     avg_jm = pickle.load(file)
 
-with open("mrmr", 'rb') as file:
-    mrmr = pickle.load(file)
-with open("fisher_ga", 'rb') as file:
-    fisher = pickle.load(file)
-
-with open("dm_ga", 'rb') as file:
-    dm = pickle.load(file)
-with open("random_ga", 'rb') as file:
-    random = pickle.load(file)
-with open("relief_ga", 'rb') as file:
-    relief = pickle.load(file)
-
-with open("dm_coordinates", 'rb') as file:
-    dm_coordinates = pickle.load(file)
-with open("avg_jm", 'rb') as file:
-    avg_jm = pickle.load(file)
 
 x1 = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110,
       120, 130, 140, 150, 160, 170, 180, 190, 200]
@@ -63,18 +72,31 @@ ax = fig.add_subplot(111)
 # plt.legend()
 # plt.show()
 
+# ploting
+# fig, ax = plt.subplots()
+# plt.plot(x1, mrmr, label='mrmr')
+# plt.plot(x1, fisher, label='fisher')
+# plt.plot(x1, relief, label='relief')
+# plt.plot(x1, random, label='random')
+# plt.plot(x1, dm, label='dm')
+# plt.title("handmovement ga before all")
+
+# plt.legend()
+# ax.set_xlabel('X-axis')
+# ax.set_ylabel('Y-axis')
+# ax.set_title('Multiple Datasets Scatter Plot')
+# plt.show()
+
 fig, ax = plt.subplots()
-plt.plot(x1, mrmr, label='mrmr')
-plt.plot(x1, fisher, label='fisher')
-plt.plot(x1, relief, label='relief')
-plt.plot(x1, random, label='random')
-plt.plot(x1, dm, label='dm')
-plt.title("handmovement ga before all")
+plt.plot(x1, mrmr_avg, label='mrmr')
+plt.plot(x1, fisher_avg, label='fisher')
+plt.plot(x1, relief_avg, label='relief')
+plt.plot(x1, random_avg, label='random')
+plt.plot(x1, dm_avg, label='dm')
+ax.set_title("handmovement ga before all")
 
 plt.legend()
 ax.set_xlabel('X-axis')
 ax.set_ylabel('Y-axis')
-ax.set_title('Multiple Datasets Scatter Plot')
+# ax.set_title('Multiple Datasets Scatter Plot')
 plt.show()
-# print(dm)
-# print(mrmr)
