@@ -28,6 +28,10 @@ from numpy import linalg as LA
 import numpy as np
 import utils.JM as JM
 
+import datafold.dynfold as dfold
+import datafold.pcfold as pfold
+from datafold.dynfold import LocalRegressionSelection
+from datafold.utils.plot import plot_pairwise_eigenvector
 
 '''
 epsilon_factor - a parameter that controls the width of the Gaussian kernel  
@@ -110,6 +114,7 @@ def diffusionMapping(dataList, alpha, eps_type, t, **kwargs):
     # Compute embedding coordinates
     diffusion_coordinates = vecs[:, 1:embeddim +
                                  1].T * (eigs[1:embeddim + 1][:, None] ** t)
+    print(f"epsilon={epsilon}")
 
     return (vecs, eigs, diffusion_coordinates.T, dataList, epsilon)
 
@@ -134,6 +139,51 @@ def dm_ranking(data, num_of_features, q):
     vecs, eigs, coordinates, dataList, epsilon = diffusionMapping(
         data, alpha, eps_type, 1, dim=2)  # dim - number of diffusion coordinates computed
 
+    # Pick best features
+    sorted_indices = np.argsort(-avg_jm)
+    # print(sorted_indices)
+    # Calculate the index corresponding to the q percentile
+    index_q_percentile = int(len(data) * q / 100)
+    top_q_percent_indices = sorted_indices[:index_q_percentile]
+
+    # K-Means
+    kmeans = KMeans(init="random", n_clusters=num_of_features,
+                    max_iter=300, n_init=5)
+    label = kmeans.fit_predict(coordinates[top_q_percent_indices])
+    u_labels = np.unique(label)
+    # Pick best features
+    selected_features = []
+    for i in u_labels:
+        arr = np.copy(avg_jm)
+        indices_to_exclude = np.where(label == i)
+        value_to_set = -10
+        mask = np.ones_like(arr, dtype=bool)
+        mask[indices_to_exclude] = False
+        arr[mask] = value_to_set
+        selected_features.append(np.argmax(arr))
+    return selected_features, coordinates
+
+
+def dm_ranking_datafold(data, num_of_features, q):
+
+    avg_jm = np.mean(data, axis=1)
+   
+    # Optimize kernel parameters
+    X_pcm = pfold.PCManifold(data)
+    X_pcm.optimize_parameters(result_scaling=3)
+
+    print(f"epsilon={X_pcm.kernel.epsilon}, cut-off={X_pcm.cut_off}")
+
+    # Diffusion Maps
+    dmap = dfold.DiffusionMaps(
+        kernel=pfold.GaussianKernel(
+            epsilon=X_pcm.kernel.epsilon, distance=dict(cut_off=X_pcm.cut_off)
+        ),
+        n_eigenpairs=9,
+    )
+    dmap = dmap.fit(X_pcm)
+    evecs, evals = dmap.eigenvectors_, dmap.eigenvalues_
+    coordinates = evecs[:,[1,2]]
     # Pick best features
     sorted_indices = np.argsort(-avg_jm)
     # print(sorted_indices)
