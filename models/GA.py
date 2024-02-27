@@ -70,7 +70,7 @@ def plot(score, x, y, c="b"):
 def initilization_of_population(size, n_feat):
     population = []
     for i in range(size):
-        chromosome = np.ones(n_feat, dtype=np.bool)
+        chromosome = np.ones(n_feat, dtype=np.bool_)
         chromosome[:int(0.99*n_feat)] = False
         # if i == 1:
         #     total = 0
