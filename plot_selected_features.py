@@ -9,17 +9,19 @@ def average_of_list(list):
 
     return np.sum(list_to_use,0) / len(list_to_use)
 
-mrmr, fisher, dm, random, relief = [], [], [], [], []
-for dir in range(1,5):
+mrmr, fisher, dm, dm_datafold, random, relief = [], [], [], [], [], []
+for dir in range(1,6):
     print("directory ", dir)
     # Load the Data
-    os.chdir(f"C:\\Users\\doron\\OneDrive\\Desktop\\thesis\\TSC\\handMovement\\Database\\handmovement2\\{dir}")
+    os.chdir(f"C:\\Users\\doron\\OneDrive\\Desktop\\thesis\\TSC\\handMovement\\Database\\handmovement3\\{dir}")
     with open("mrmr_ga_before", 'rb') as file:
         mrmr.append(pickle.load(file))
     with open("fisher_ga_before", 'rb') as file:
         fisher.append(pickle.load(file))
     with open("dm_ga_before", 'rb') as file:
         dm.append(pickle.load(file))
+    with open("dm_datafold_ga_before", 'rb') as file:
+        dm_datafold.append(pickle.load(file))
     with open("random_ga_before", 'rb') as file:
         random.append(pickle.load(file))
     with open("relief_ga_before", 'rb') as file:
@@ -28,6 +30,7 @@ for dir in range(1,5):
 mrmr_avg = average_of_list(mrmr)
 fisher_avg = average_of_list(fisher)
 dm_avg = average_of_list(dm)
+dm_datafold_avg = average_of_list(dm_datafold)
 random_avg = average_of_list(random)
 relief_avg = average_of_list(relief)
 
@@ -93,6 +96,7 @@ plt.plot(x1, fisher_avg, label='fisher')
 plt.plot(x1, relief_avg, label='relief')
 plt.plot(x1, random_avg, label='random')
 plt.plot(x1, dm_avg, label='dm')
+plt.plot(x1, dm_datafold_avg, label='dm_datafold')
 ax.set_title("handmovement ga before all")
 
 plt.legend()
