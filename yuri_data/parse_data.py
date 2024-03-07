@@ -37,28 +37,39 @@ pattern = r'([A-Z]+)\.([A-Z]+)\.(\d{12})'
 match = re.match(pattern, string)
 
 def parsing_file(string) -> Dict:
+    metadata = pd.DataFrame()
     parts = string.split('.')
     timestamp = parts[2]
     mat = sio.loadmat(f'{DIRECTORY}/{string}')
     vec = np.hstack(mat["W"])
     station = find_station(timestamp)
-    metadata = df_hrfi[df_hrfi["YYYYMMDDHHMiMi"] == timestamp]
-    existing_df = pd.DataFrame({'Station': station,
-                                'Axis': parts[1],
-                                'Timestamp': timestamp,
-                                'Vector': vec})
-    resulted_df = pd.concat([existing_df, metadata], axis = 1)
-
-    return resulted_df
+    metadata = df_hrfi[df_hrfi["YYYYMMDDHHMiMi"] == int(timestamp)]
+    metadata = metadata.reset_index(drop=True)
+    return {'Station': station,
+            'Axis': parts[1],
+            'Timestamp': timestamp,
+            'Vector': [vec],
+            'Second': metadata.at[0, "second"],
+            'Orid': metadata.at[0, "Orid"],
+            'EtimeB': metadata.at[0, "EtimeB"],
+            'LatB': metadata.at[0 ,"LatB"],	
+            'LonB': metadata.at[0, "LonB"],
+            'DepthB': metadata.at[0, "DepthB"],
+            'Md': metadata.at[0, "Md"],
+            'TypeB': metadata.at[0, "TypeB"],
+            'HRFI_Ponset-OriginTime': metadata.at[0, "HRFI_Ponset-OriginTime"]
+            }
 
 def find_station(timestamp):
     for station in helper:
         tempdf = helper[station]
-        if tempdf["YYYYMMDDHHMiMi"] == int(timestamp):
+        if int(timestamp) in tempdf["YYYYMMDDHHMiMi"].values:
             return station
     return "HRFI"
 
 parsed_data = [parsing_file(string) for string in data]
+
+# parsed_data = parsing_file(string)
 
 df = pd.DataFrame(parsed_data)
 
