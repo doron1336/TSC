@@ -127,3 +127,6 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+handMovement/
+yuri_data/Israel_South_2004-2014_EX_HRFI_mat/

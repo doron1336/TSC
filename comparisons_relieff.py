@@ -4,10 +4,11 @@ from scipy.spatial.distance import pdist, squareform
 import os
 import pickle as pkl
 import matplotlib.pyplot as plt
-from sklearn.cluster import KMeans
-from sklearn.linear_model import RidgeClassifierCV
 import numpy as np
 from sklearn.neighbors import KDTree
+from utils.timit import record_duration
+
+
 # using RELIEFF as a filter method
 os.chdir(r"C:\Users\doron\OneDrive\Desktop\thesis\TSC\handMovement\Database")
 
@@ -119,7 +120,7 @@ class ReliefF(object):
         self.fit(X, y)
         return self.transform(X)
 
-
+@record_duration
 def relieff_ranking(train, target, num_of_features):
     fs = ReliefF(n_neighbors=110, n_features_to_keep=num_of_features)
     X_train, selected_features = fs.fit_transform(

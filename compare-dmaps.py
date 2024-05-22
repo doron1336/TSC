@@ -51,7 +51,7 @@ X_pcm.optimize_parameters(result_scaling=3)
 
 print(f"epsilon={X_pcm.kernel.epsilon}, cut-off={X_pcm.cut_off}")
 
-# Diffusion Maps
+# datafold Diffusion Maps
 dmap = dfold.DiffusionMaps(
     kernel=pfold.GaussianKernel(
         epsilon=X_pcm.kernel.epsilon, distance=dict(cut_off=X_pcm.cut_off)

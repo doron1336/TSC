@@ -3,11 +3,10 @@ from skfeature.utility.construct_W import construct_W
 from scipy.sparse import *
 import os
 import pickle as pkl
-from sklearn.linear_model import RidgeClassifierCV
 import numpy as np
 from sklearn.feature_selection import SelectKBest
 from sklearn.feature_selection import f_classif
-import pandas as pd
+from utils.timit import record_duration
 
 # using mrmr as a filter method
 os.chdir(r"C:\Users\doron\OneDrive\Desktop\thesis\TSC\handMovement\Database")
@@ -84,7 +83,7 @@ def feature_ranking(score, k):
     top_k_indices = sorted_indices[-k:]
     return top_k_indices
 
-
+@record_duration
 def fisher_ranking(train, target, num_of_features):
     selector = SelectKBest(score_func=f_classif, k=num_of_features)
     X_new = selector.fit_transform(train, target)

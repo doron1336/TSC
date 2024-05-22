@@ -41,7 +41,7 @@ def parsing_file(string) -> Dict:
     parts = string.split('.')
     timestamp = parts[2]
     mat = sio.loadmat(f'{DIRECTORY}/{string}')
-    vec = np.hstack(mat["W"])
+    vec = np.hstack(mat["W"]) # BHE - east, BHN - north, BHZ - , 
     station = find_station(timestamp)
     metadata = df_hrfi[df_hrfi["YYYYMMDDHHMiMi"] == int(timestamp)]
     metadata = metadata.reset_index(drop=True)
