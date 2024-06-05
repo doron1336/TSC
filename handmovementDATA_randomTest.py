@@ -84,11 +84,16 @@ def GetHandMovementDATA_randomTest(precentOfTest):
 
     train_set = train_set.sample(frac=1)  # shuffles the rows
     # print(train_set)
-    x_train = train_set.iloc[:, :3000].to_numpy().astype(np.float32)
-    y_train = train_set["label"].to_numpy()
+    # x_train = train_set.iloc[:, :3000].to_numpy().astype(np.float32)
+    # y_train = train_set["label"].to_numpy()
 
-    x_test = test_set.iloc[:, :3000].to_numpy().astype(np.float32)
-    y_test = test_set["label"].to_numpy()
+    # x_test = test_set.iloc[:, :3000].to_numpy().astype(np.float32)
+    # y_test = test_set["label"].to_numpy()
+    x_train = train_set.iloc[:, :3000]
+    y_train = train_set["label"]
+
+    x_test = test_set.iloc[:, :3000] 
+    y_test = test_set["label"]
     # print(type(x_train))
     # print(x_train.shape)
     # print(type(y_train))
