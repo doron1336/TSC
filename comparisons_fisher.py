@@ -8,18 +8,18 @@ from sklearn.feature_selection import SelectKBest
 from sklearn.feature_selection import f_classif
 from utils.timit import record_duration
 
-# using mrmr as a filter method
-os.chdir(r"C:\Users\doron\OneDrive\Desktop\thesis\TSC\handMovement\Database")
-
-with open("X_test_transform", "rb") as f:
-    Rocket_output_test = pkl.load(f)
-with open("HandMovementDATA_ytest", "rb") as f:
-    y_test = pkl.load(f)
-
-with open("X_train_transform", "rb") as f:
-    Rocket_output_train = pkl.load(f)
-with open("HandMovementDATA_ytrain", "rb") as f:
-    y_train = pkl.load(f)
+# # using mrmr as a filter method
+# os.chdir(r"C:\Users\doron\OneDrive\Desktop\thesis\TSC\handMovement\Database")
+#
+# with open("X_test_transform", "rb") as f:
+#     Rocket_output_test = pkl.load(f)
+# with open("HandMovementDATA_ytest", "rb") as f:
+#     y_test = pkl.load(f)
+#
+# with open("X_train_transform", "rb") as f:
+#     Rocket_output_train = pkl.load(f)
+# with open("HandMovementDATA_ytrain", "rb") as f:
+#     y_train = pkl.load(f)
 
 
 def fisher_score(X, y):

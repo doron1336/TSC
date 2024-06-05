@@ -2,7 +2,7 @@ import time
 from functools import wraps
 import json
 from datetime import datetime
-log_path = "C:/Users/doron/OneDrive/Desktop/thesis/TSC/timer.log"
+log_path = "timer.log"
 
 
 def record_duration(func):
