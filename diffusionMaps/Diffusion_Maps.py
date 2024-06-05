@@ -114,21 +114,10 @@ def diffusionMapping(dataList, alpha, eps_type, t, **kwargs):
     # Compute embedding coordinates
     diffusion_coordinates = vecs[:, 1:embeddim +
                                  1].T * (eigs[1:embeddim + 1][:, None] ** t)
-    print(f"epsilon={epsilon}")
+    # print(f"epsilon={epsilon}")
 
     return (vecs, eigs, diffusion_coordinates.T, dataList, epsilon)
 
-
-# Pick best features
-# features = []
-# for i in u_labels:
-#     arr = np.copy(avg_jm)
-#     indices_to_exclude = np.where(label == i)
-#     value_to_set = -10
-#     mask = np.ones_like(arr, dtype=bool)
-#     mask[indices_to_exclude] = False
-#     arr[mask] = value_to_set
-#     features.append(np.argmax(arr))
 
 @record_duration
 def dm_ranking(data, num_of_features, q):
@@ -137,7 +126,7 @@ def dm_ranking(data, num_of_features, q):
     eps_type = 'mean'  # mean' #or maxmin
     alpha = 1
     vecs, eigs, coordinates, dataList, epsilon = diffusionMapping(
-        data, alpha, eps_type, 1, dim=2)  # dim - number of diffusion coordinates computed
+        data, alpha, eps_type, 1, dim=3)  # dim - number of diffusion coordinates computed
 
     # Pick best features
     sorted_indices = np.argsort(-avg_jm)
