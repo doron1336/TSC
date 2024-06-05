@@ -6,7 +6,6 @@ import numpy as np
 import pandas as pd
 from sktime.transformations.base import _PanelToTabularTransformer
 from sktime.utils.validation.panel import check_X
-from numba import njit
 from numba import prange, vectorize
 from itertools import combinations
 
@@ -164,9 +163,9 @@ def fit(X, num_features = 10000, max_dilations_per_kernel = 32, y=None):
     -------
     self
     """
-    X = check_X(X, enforce_univariate=True, coerce_to_numpy=True)
-    X = X[:, 0, :].astype(np.float32)
-    
+    # X = check_X(X, enforce_univariate=True, coerce_to_numpy=True)
+    # X = X[:, 0, :].astype(np.float32)
+    # print(X.shape, type(X))
     _, input_length = X.shape
 
     if input_length < 9:
@@ -194,8 +193,8 @@ def fit(X, num_features = 10000, max_dilations_per_kernel = 32, y=None):
 
 def transform(X, parameters):
 
-    X = check_X(X, enforce_univariate=True, coerce_to_numpy=True)
-    X = X[:, 0, :].astype(np.float32)
+    # X = check_X(X, enforce_univariate=True, coerce_to_numpy=True)
+    # X = X[:, 0, :].astype(np.float32)
 
     num_examples, input_length = X.shape
 
