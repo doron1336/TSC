@@ -3,32 +3,27 @@ from models.minirocket import fit, transform
 from handmovementDATA_randomTest import GetHandMovementDATA_randomTest
 from sktime.datasets import load_arrow_head, load_osuleaf
 import pickle
+import numpy as np
 
 os.chdir(r"C:\Users\doron\OneDrive\Desktop\thesis\TSC\handMovement\Database")
 
 # load DATA
 x_train, y_train, x_test, y_test = GetHandMovementDATA_randomTest(0.15)
 for num in range(1,6):
-    os.chdir(r"C:\Users\doron\OneDrive\Desktop\thesis\TSC\handMovement\Database\handmovement3")
+    os.chdir(r"C:\Users\doron\OneDrive\Desktop\thesis\TSC\handMovement\Database\handmovement4")
     try:
         os.mkdir(f"{num}")
     except:
         print("failed to create directory")
-    os.chdir(f"C:\\Users\\doron\\OneDrive\\Desktop\\thesis\\TSC\\handMovement\\Database\\handmovement3\\{num}")
+    os.chdir(f"C:\\Users\\doron\\OneDrive\\Desktop\\thesis\\TSC\\handMovement\\Database\\handmovement4\\{num}")
 
-    # x_train, y_train = load_arrow_head(split="test", return_X_y=True)
-    # x_test, y_test = load_arrow_head(split="train", return_X_y=True)
-
-    # x_train, y_train = load_osuleaf(split="train", return_X_y=True)
-    # x_test, y_test = load_osuleaf(split="test", return_X_y=True)
-
-    
     # miniRocket section
     filename_train = os.path.abspath(".") + "\\handmovement_minirocket_train"
     filename_test = os.path.abspath(".") + "\\handmovement_minirocket_test" 
-    parameters = fit(x_train)
-    X_train_transform = transform(x_train, parameters)
-    X_test_transform = transform(x_test, parameters)
+
+    parameters = fit(x_train.to_numpy(dtype=np.float32))
+    X_train_transform = transform(x_train.to_numpy(dtype=np.float32), parameters)
+    X_test_transform = transform(x_test.to_numpy(dtype=np.float32), parameters)
     # data, dataMean = JM_flat(X_train_transform, y_train)
     # print("size of data from JM_flat", data.shape)
 
