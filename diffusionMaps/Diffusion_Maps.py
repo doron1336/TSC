@@ -26,7 +26,7 @@ from scipy.spatial.distance import pdist, squareform
 import matplotlib.pyplot as plt
 from numpy import linalg as LA
 import numpy as np
-import utils.JM as JM
+from utils.timit import record_duration
 
 import datafold.dynfold as dfold
 import datafold.pcfold as pfold
@@ -130,7 +130,7 @@ def diffusionMapping(dataList, alpha, eps_type, t, **kwargs):
 #     arr[mask] = value_to_set
 #     features.append(np.argmax(arr))
 
-
+@record_duration
 def dm_ranking(data, num_of_features, q):
 
     avg_jm = np.mean(data, axis=1)
@@ -164,6 +164,7 @@ def dm_ranking(data, num_of_features, q):
     return selected_features, coordinates
 
 
+@record_duration
 def dm_ranking_datafold(data, num_of_features, q):
 
     avg_jm = np.mean(data, axis=1)
