@@ -12,8 +12,9 @@ def indicesNotSelected(selectedIndices, numSamples):
             temp.append(i)
     return temp
 
-def GetHandMovementDATA_randomTest(precentOfTest):
-    os.chdir(r"C:\Users\doron\OneDrive\Desktop\thesis\TSC\handMovement\Database")
+
+def GetHandMovementDATA_randomTest(precentOfTest, directory):
+    os.chdir(directory)
     mat = sio.loadmat('male_1.mat')
     mat_to_pd = pd.Series(mat)
     mat_to_pd = pd.DataFrame(

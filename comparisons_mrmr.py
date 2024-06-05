@@ -3,24 +3,24 @@ import matplotlib.pyplot as plt
 from scipy.spatial.distance import pdist, squareform
 import os
 import pickle as pkl
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 import pandas as pd
 from mrmr import mrmr_classif
 from utils.timit import record_duration
 
 
-# using mrmr as a filter method
-os.chdir(r"C:\Users\doron\OneDrive\Desktop\thesis\TSC\handMovement\Database")
-
-with open("X_test_transform", "rb") as f:
-    Rocket_output_test = pkl.load(f)
-with open("HandMovementDATA_ytest", "rb") as f:
-    y_test = pkl.load(f)
-
-with open("X_train_transform", "rb") as f:
-    Rocket_output_train = pkl.load(f)
-with open("HandMovementDATA_ytrain", "rb") as f:
-    y_train = pkl.load(f)
+# # using mrmr as a filter method
+# os.chdir(r"C:\Users\doron\OneDrive\Desktop\thesis\TSC\handMovement\Database")
+#
+# with open("X_test_transform", "rb") as f:
+#     Rocket_output_test = pkl.load(f)
+# with open("HandMovementDATA_ytest", "rb") as f:
+#     y_test = pkl.load(f)
+#
+# with open("X_train_transform", "rb") as f:
+#     Rocket_output_train = pkl.load(f)
+# with open("HandMovementDATA_ytrain", "rb") as f:
+#     y_train = pkl.load(f)
 
 @record_duration
 def mrmr_ranking(train, target, num_of_features):

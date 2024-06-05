@@ -10,7 +10,7 @@ from utils.timit import record_duration
 
 
 # using RELIEFF as a filter method
-os.chdir(r"C:\Users\doron\OneDrive\Desktop\thesis\TSC\handMovement\Database")
+# os.chdir(r"C:\Users\doron\OneDrive\Desktop\thesis\TSC\handMovement\Database")
 
 
 class ReliefF(object):
