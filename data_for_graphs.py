@@ -28,18 +28,17 @@ for num in range(1, 6):
     directory = os.path.join(os.path.abspath("."), "handmovement5", str(num))
     print("directory ", directory)
     # Load the Data
-    os.chdir(directory)
     dataset_name = "handmovement"
     # miniRocket section
-    # filename_train = os.path.abspath(".") + "\\osuleaf_train"
-    # filename_test = os.path.abspath(".") + "\\osuleaf_test"
-    with open(f"{dataset_name}_minirocket_train", 'rb') as file:
+    # # filename_train = os.path.abspath(".") + "\\osuleaf_train"
+    # # filename_test = os.path.abspath(".") + "\\osuleaf_test"
+    with open(f"{directory}/{dataset_name}_minirocket_train", 'rb') as file:
         X_train_transform = pickle.load(file)
-    with open(f"{dataset_name}_minirocket_test", 'rb') as file:
+    with open(f"{directory}/{dataset_name}_minirocket_test", 'rb') as file:
         X_test_transform = pickle.load(file)
-    with open(f"{dataset_name}_y_train", 'rb') as file:
+    with open(f"{directory}/{dataset_name}_y_train", 'rb') as file:
         y_train = pickle.load(file)
-    with open(f"{dataset_name}_y_test", 'rb') as file:
+    with open(f"{directory}/{dataset_name}_y_test", 'rb') as file:
         y_test = pickle.load(file)
     # with open("JM_FLAT_arrowhead", 'rb') as file:
     # JM_flat_data = pickle.load(file)
@@ -69,8 +68,8 @@ for num in range(1, 6):
         fishers_selected = fisher_ranking(new_X_train_transform, y_train, num_featurs)
         mrmr_selected = mrmr_ranking(new_X_train_transform, y_train, num_featurs)
         relief_selected = relieff_ranking(new_X_train_transform, y_train, num_featurs)
-        dm_selected, dm_coordinates = dm_ranking(JM_flat_data, num_featurs, 80)
-        dm_selected_datafold, dm_coordinates_datafold = dm_ranking_datafold(JM_flat_data, num_featurs, 80)
+        dm_selected, dm_coordinates = dm_ranking(JM_flat_data, num_featurs, q=100)
+        dm_selected_datafold, dm_coordinates_datafold = dm_ranking_datafold(JM_flat_data, num_featurs, q=100)
 
         with open("dm_coordinates", 'wb') as file:
             pickle.dump(dm_coordinates, file)
