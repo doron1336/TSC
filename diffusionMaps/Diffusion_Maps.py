@@ -16,22 +16,16 @@ The top diffusion maps coordinates are typically used to embed the original data
 
 Last modified by Neta Rabin on 2019/02/27.
 '''
-# Add the parent directory of mypackage to the Python path
-from sklearn.linear_model import RidgeClassifierCV
-from sklearn.cluster import KMeans
-import pickle as pkl
-import sys
-import os
-from scipy.spatial.distance import pdist, squareform
-import matplotlib.pyplot as plt
-from numpy import linalg as LA
-import numpy as np
-from utils.timit import record_duration
-
 import datafold.dynfold as dfold
 import datafold.pcfold as pfold
-from datafold.dynfold import LocalRegressionSelection
-from datafold.utils.plot import plot_pairwise_eigenvector
+import matplotlib.pyplot as plt
+import numpy as np
+from numpy import linalg as LA
+from scipy.spatial.distance import pdist, squareform
+# Add the parent directory of mypackage to the Python path
+from sklearn.cluster import KMeans
+import seaborn as sns
+from utils.timit import record_duration
 
 '''
 epsilon_factor - a parameter that controls the width of the Gaussian kernel  
@@ -42,17 +36,17 @@ epsilon_factor = 4
 Compute  the width of the Gaussian kernel based on the given dataset.   
 '''
 
+
 # compute epsilon of (dataList)
 
 
 def calcEpsilon(dataList, eps_type, epsilon_factor=5):
-
     dist = squareform(pdist(dataList))  # read about squareform
     if eps_type == 'maxmin':
         # option #1 - epsilon= max min(distance)
-        idist = dist+np.identity(len(dist))
+        idist = dist + np.identity(len(dist))
         eps_maxmin = np.max(np.min(idist, axis=0))
-        epsilon = eps_maxmin*epsilon_factor
+        epsilon = eps_maxmin * epsilon_factor
     elif eps_type == 'mean':
         # option #2 - epsilon= mean(distance)
         eps_mean = np.mean(dist)
@@ -65,7 +59,7 @@ def calcEpsilon(dataList, eps_type, epsilon_factor=5):
 
 def ker_calc(dataList, eps_type):
     dist, eps = calcEpsilon(dataList, eps_type, epsilon_factor=1)
-    ker = np.exp(-(dist**2) / (2*eps))
+    ker = np.exp(-(dist ** 2) / (2 * eps))
     return ker, eps
 
 
@@ -87,15 +81,14 @@ def diffusionMapping(dataList, alpha, eps_type, t, **kwargs):
     ker, epsilon = ker_calc(dataList, eps_type)
     v = np.sum(ker, axis=0)
 
-    v = v**alpha
-    V_x_y = v*v[:, None]
-    a = ker/V_x_y
+    v = v ** alpha
+    V_x_y = v * v[:, None]
+    a = ker / V_x_y
 
-
-# calc the row sums of a, save as v1
-# in the next for-loop, divide the rows of a by v1
+    # calc the row sums of a, save as v1
+    # in the next for-loop, divide the rows of a by v1
     sa = np.sum(a, axis=0)
-    m = a/sa[:, None]
+    m = a / sa[:, None]
 
     # compute eigenvectors of (a_ij)
     vecs, eigs, _ = LA.svd(m, full_matrices=False)
@@ -113,7 +106,7 @@ def diffusionMapping(dataList, alpha, eps_type, t, **kwargs):
 
     # Compute embedding coordinates
     diffusion_coordinates = vecs[:, 1:embeddim +
-                                 1].T * (eigs[1:embeddim + 1][:, None] ** t)
+                                      1].T * (eigs[1:embeddim + 1][:, None] ** t)
     # print(f"epsilon={epsilon}")
 
     return (vecs, eigs, diffusion_coordinates.T, dataList, epsilon)
@@ -121,7 +114,6 @@ def diffusionMapping(dataList, alpha, eps_type, t, **kwargs):
 
 @record_duration
 def dm_ranking(data, num_of_features, q):
-
     avg_jm = np.mean(data, axis=1)
     eps_type = 'mean'  # mean' #or maxmin
     alpha = 1
@@ -136,28 +128,41 @@ def dm_ranking(data, num_of_features, q):
     top_q_percent_indices = sorted_indices[:index_q_percentile]
 
     # K-Means
-    kmeans = KMeans(init="random", n_clusters=num_of_features,
-                    max_iter=300, n_init=5)
-    label = kmeans.fit_predict(coordinates[top_q_percent_indices])
-    u_labels = np.unique(label)
+    # kmeans = KMeans(init="random", n_clusters=num_of_features,
+    #                 max_iter=300, n_init=5)
+    kmeans = KMeans(n_clusters=num_of_features)
+    labels = kmeans.fit_predict(coordinates[:, :2])
+    u_labels = np.unique(labels)
+    # palette = sns.color_palette("Set2", len(np.unique(labels)))
+    # plt.figure(figsize=(14, 10))  # Increase the figure size
+    # for label in u_labels:
+    #     plt.scatter(coordinates[labels == label][:, 0], coordinates[labels == label][:, 1], color=palette[label], label=f'Cluster {label}')
+
     # Pick best features
     selected_features = []
     for i in u_labels:
         arr = np.copy(avg_jm)
-        indices_to_exclude = np.where(label == i)
+        indices_to_exclude = np.where(labels == i)
         value_to_set = -10
         mask = np.ones_like(arr, dtype=bool)
         mask[indices_to_exclude] = False
         arr[mask] = value_to_set
         selected_features.append(np.argmax(arr))
-    return selected_features, coordinates
+    # plt.scatter(coordinates[selected_features][:, 0], coordinates[selected_features][:, 1], color='red',
+    #             label='selected features')
+    # plt.title('KMeans Clustering')
+    # plt.xlabel('coordinates 1')
+    # plt.ylabel('coordinates 2')
+    # plt.savefig('kmeans_dm_ranking.png', dpi=300, bbox_inches='tight')
+    # plt.legend()
+    # plt.show()
+    return selected_features, coordinates, labels
 
 
 @record_duration
 def dm_ranking_datafold(data, num_of_features, q):
-
     avg_jm = np.mean(data, axis=1)
-   
+
     # Optimize kernel parameters
     X_pcm = pfold.PCManifold(data)
     X_pcm.optimize_parameters(result_scaling=3)
@@ -173,7 +178,7 @@ def dm_ranking_datafold(data, num_of_features, q):
     )
     dmap = dmap.fit(X_pcm)
     evecs, evals = dmap.eigenvectors_, dmap.eigenvalues_
-    coordinates = evecs[:,[1,2]]
+    coordinates = evecs[:, [1, 2]]
     # Pick best features
     sorted_indices = np.argsort(-avg_jm)
     # print(sorted_indices)
@@ -197,7 +202,6 @@ def dm_ranking_datafold(data, num_of_features, q):
         arr[mask] = value_to_set
         selected_features.append(np.argmax(arr))
     return selected_features, coordinates
-
 
 # Classification
 
