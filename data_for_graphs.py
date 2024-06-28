@@ -24,8 +24,8 @@ def random_choosing(num_of_features):
     return random_indices
 
 
-for num in range(1, 6):
-    directory = os.path.join(os.path.abspath("."), "handmovement5", str(num))
+for num in range(1, 2):
+    directory = os.path.join(os.path.abspath("."), "handmovement8", str(num))
     print("directory ", directory)
     # Load the Data
     dataset_name = "handmovement"
@@ -44,10 +44,14 @@ for num in range(1, 6):
     # JM_flat_data = pickle.load(file)
 
     # GA section
-    chromo_df_bc, score_bc = generations(X_train_transform, y_train, size=800, n_feat=X_train_transform.shape[1],
-                                         n_parents=640, mutation_rate=0.20, n_gen=2,
-                                         X_train=X_train_transform, X_test=X_test_transform, Y_train=y_train,
-                                         Y_test=y_test)
+    if os.path.exists(f"{directory}/GA_results"):
+        with open(f"{directory}/GA_results", 'rb') as file:
+            chromo_df_bc, score_bc = pickle.load(file)
+    else:
+        chromo_df_bc, score_bc = generations(X_train_transform, y_train, size=800, n_feat=X_train_transform.shape[1],
+                                             n_parents=640, mutation_rate=0.20, n_gen=2,
+                                             X_train=X_train_transform, X_test=X_test_transform, Y_train=y_train,
+                                             Y_test=y_test)
     # selectedChromo = np.empty(X_train_transform.shape[1])
 
     for chromo in chromo_df_bc:
@@ -58,25 +62,30 @@ for num in range(1, 6):
     new_X_train_transform = X_train_transform[:, chromo_df_bc[1]]
     JM_flat_data, dataMean = JM_flat(new_X_train_transform, y_train)
     avg_jm = np.mean(JM_flat_data, axis=1)
-    with open("avg_jm", 'wb') as file:
+    with open(os.path.join(directory,"avg_jm"), 'wb') as file:
         pickle.dump(avg_jm, file)
 
     algo_dict = {0: "fisher", 1: "mrmr", 2: "relief", 3: "dm", 4: "dm_datafold", 5: "random"}
-    num_range = len(algo_dict)
     predictions_dict = {"fisher": [], "mrmr": [], "relief": [], "dm": [], "dm_datafold": [], "random": []}
-    for num_featurs in range(10, 201, 10):
-        fishers_selected = fisher_ranking(new_X_train_transform, y_train, num_featurs)
-        mrmr_selected = mrmr_ranking(new_X_train_transform, y_train, num_featurs)
-        relief_selected = relieff_ranking(new_X_train_transform, y_train, num_featurs)
-        dm_selected, dm_coordinates = dm_ranking(JM_flat_data, num_featurs, q=100)
-        dm_selected_datafold, dm_coordinates_datafold = dm_ranking_datafold(JM_flat_data, num_featurs, q=100)
+    num_algos = len(algo_dict)
+    for num_features in range(10, 201, 10):
+        fishers_selected = fisher_ranking(new_X_train_transform, y_train, num_features)
+        mrmr_selected = mrmr_ranking(new_X_train_transform, y_train, num_features)
+        relief_selected = relieff_ranking(new_X_train_transform, y_train, num_features)
+        dm_selected, dm_coordinates, labels = dm_ranking(JM_flat_data, num_features, q=100)
+        dm_selected_datafold, dm_coordinates_datafold = dm_ranking_datafold(JM_flat_data, num_features, q=100)
+        random_selected = random_choosing(num_features)
 
-        with open("dm_coordinates", 'wb') as file:
-            pickle.dump(dm_coordinates, file)
-        random_selected = random_choosing(num_featurs)
-        for j in range(num_range):
-            features_dict = {0: fishers_selected, 1: mrmr_selected,
-                             2: relief_selected, 3: dm_selected, 4: dm_selected_datafold, 5: random_selected}
+        features_dict = {0: fishers_selected, 1: mrmr_selected,
+                         2: relief_selected, 3: dm_selected, 4: dm_selected_datafold, 5: random_selected}
+
+        dm_data = {"labels": labels, "dm_coordinates": dm_coordinates}
+        with open(os.path.join(directory, f"dm_data_{num_features}_features"), 'wb') as file:
+            pickle.dump(dm_data, file)
+        with open(os.path.join(directory, f"selected_{num_features}_features"), 'wb') as file:
+            pickle.dump(features_dict, file)
+
+        for j in range(num_algos):
             classifier_selected = RidgeClassifierCV(alphas=np.logspace(-3, 3, 10))
             classifier_selected.fit(
                 X_train_transform[:, features_dict[j]], y_train)
@@ -84,8 +93,8 @@ for num in range(1, 6):
                 X_test_transform[:, features_dict[j]], y_test)
             predictions_dict[algo_dict[j]].append(prediction_score)
 
-    for k in range(num_range):
-        with open(f'{algo_dict[k]}_ga_before', 'wb') as file:
+    for k in range(num_algos):
+        with open(os.path.join(directory,f'{algo_dict[k]}_ga_before'), 'wb') as file:
             pickle.dump(predictions_dict[algo_dict[k]], file)
         # with open(f'{algo_dict[k]}_selected', 'wb') as file:
         #     pickle.dump(algo_dict[k], file)
