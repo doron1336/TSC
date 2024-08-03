@@ -1,19 +1,12 @@
 import warnings
-from random import randint
 
 import matplotlib.pyplot as plt
 import numpy as np
-import pandas as pd
 import seaborn as sns
-from sklearn import svm
-from sklearn.ensemble import GradientBoostingClassifier
-from sklearn.ensemble import RandomForestClassifier, AdaBoostClassifier
-from sklearn.linear_model import LogisticRegression
+from joblib import Parallel, delayed
 from sklearn.linear_model import RidgeClassifierCV
 from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split
-from sklearn.neighbors import KNeighborsClassifier
-from sklearn.tree import DecisionTreeClassifier
 
 # matplotlib inline
 warnings.filterwarnings("ignore")
@@ -27,36 +20,37 @@ def split(df, label):
 
 logmodel = RidgeClassifierCV(alphas=np.logspace(-3, 3, 10))
 
-classifiers = ['LinearSVM', 'RadialSVM',
-               'Logistic', 'RandomForest',
-               'AdaBoost', 'DecisionTree',
-               'KNeighbors', 'GradientBoosting']
 
-models = [svm.SVC(kernel='linear'),
-          svm.SVC(kernel='rbf'),
-          LogisticRegression(max_iter=1000),
-          RandomForestClassifier(n_estimators=200, random_state=0),
-          AdaBoostClassifier(random_state=0),
-          DecisionTreeClassifier(random_state=0),
-          KNeighborsClassifier(),
-          GradientBoostingClassifier(random_state=0)]
+# classifiers = ['LinearSVM', 'RadialSVM',
+#                'Logistic', 'RandomForest',
+#                'AdaBoost', 'DecisionTree',
+#                'KNeighbors', 'GradientBoosting']
+
+# models = [svm.SVC(kernel='linear'),
+#           svm.SVC(kernel='rbf'),
+#           LogisticRegression(max_iter=1000),
+#           RandomForestClassifier(n_estimators=200, random_state=0),
+#           AdaBoostClassifier(random_state=0),
+#           DecisionTreeClassifier(random_state=0),
+#           KNeighborsClassifier(),
+#           GradientBoostingClassifier(random_state=0)]
 
 
-def acc_score(df, label):
-    Score = pd.DataFrame({"Classifier": classifiers})
-    j = 0
-    acc = []
-    X_train, X_test, Y_train, Y_test = split(df, label)
-    for i in models:
-        model = i
-        model.fit(X_train, Y_train)
-        predictions = model.predict(X_test)
-        acc.append(accuracy_score(Y_test, predictions))
-        j = j + 1
-    Score["Accuracy"] = acc
-    Score.sort_values(by="Accuracy", ascending=False, inplace=True)
-    Score.reset_index(drop=True, inplace=True)
-    return Score
+# def acc_score(df, label):
+#     Score = pd.DataFrame({"Classifier": classifiers})
+#     j = 0
+#     acc = []
+#     X_train, X_test, Y_train, Y_test = split(df, label)
+#     for i in models:
+#         model = i
+#         model.fit(X_train, Y_train)
+#         predictions = model.predict(X_test)
+#         acc.append(accuracy_score(Y_test, predictions))
+#         j = j + 1
+#     Score["Accuracy"] = acc
+#     Score.sort_values(by="Accuracy", ascending=False, inplace=True)
+#     Score.reset_index(drop=True, inplace=True)
+#     return Score
 
 
 def plot(score, x, y, c="b"):
@@ -83,30 +77,31 @@ def initilization_of_population(size, n_feat):
 
 
 def fitness_score(population, X_train, X_test, Y_train, Y_test):
-    scores = []
-    scores_forrank = []
-    for chromosome in population:
+    def _evaluate_chromosome(chromosome):
         logmodel.fit(X_train[:, chromosome], Y_train)
         predictions = logmodel.predict(X_test[:, chromosome])
-        scores.append(accuracy_score(Y_test, predictions))
-        scores_forrank.append(accuracy_score(Y_test, predictions) -
-                              np.log(np.count_nonzero(chromosome)))
-    scores, population = np.array(scores), np.array(population)
-    inds = np.argsort(scores_forrank)
-    return list(scores[inds][::-1]), list(population[inds, :][::-1])
+        score = accuracy_score(Y_test, predictions)
+        score_for_rank = score - np.log(np.count_nonzero(chromosome))
+        return score, score_for_rank
+
+    scores = []
+    scores_for_rank = []
+    results = Parallel(n_jobs=-1)(delayed(_evaluate_chromosome)(chromosome) for chromosome in population)
+    scores, scores_for_rank = zip(*results)
+    scores = np.array(scores)
+    population = np.array(population)
+    scores_for_rank = np.array(scores_for_rank)
+    inds = np.argsort(scores_for_rank)[::-1]  # Sort in descending order
+    return scores[inds], list(population[inds])
 
 
 def selection(pop_after_fit, n_parents):
-    population_nextgen = []
-    for i in range(n_parents):
-        population_nextgen.append(pop_after_fit[i])
-    return population_nextgen
+    return pop_after_fit[:n_parents]
 
 
-def crossover(pop_after_sel):
+def crossover(pop_after_sel: list):
     pop_nextgen = pop_after_sel
     for i in range(0, len(pop_after_sel), 2):
-        new_par = []
         child_1, child_2 = pop_nextgen[i], pop_nextgen[i + 1]
         new_par = np.concatenate(
             (child_1[:len(child_1) // 2], child_2[len(child_1) // 2:]))
@@ -119,11 +114,8 @@ def mutation(pop_after_cross, mutation_rate, n_feat):
     pop_next_gen = []
     for n in range(0, len(pop_after_cross)):
         chromo = pop_after_cross[n]
-        rand_posi = []
-        for _ in range(0, mutation_range):
-            pos = randint(0, n_feat - 1)
-            rand_posi.append(pos)
-        for j in rand_posi:
+        rand_positions = np.random.randint(0, n_feat, mutation_range).tolist()
+        for j in rand_positions:
             chromo[j] = not chromo[j]
         pop_next_gen.append(chromo)
     return pop_next_gen
