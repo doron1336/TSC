@@ -1,12 +1,5 @@
-from numpy import linalg as LA
-import matplotlib.pyplot as plt
-from scipy.spatial.distance import pdist, squareform
-import os
-import pickle as pkl
-import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.neighbors import KDTree
-from utils.timit import record_duration
 
 
 # using RELIEFF as a filter method
@@ -14,7 +7,6 @@ from utils.timit import record_duration
 
 
 class ReliefF(object):
-
     """Feature selection using data-mined expert knowledge.
 
     Based on the ReliefF algorithm as introduced in:
@@ -46,7 +38,7 @@ class ReliefF(object):
         self.n_neighbors = n_neighbors
         self.n_features_to_keep = n_features_to_keep
 
-    def fit(self, X, y):
+    def _fit(self, X, y):
         """Computes the feature importance scores from the training data.
 
         Parameters
@@ -67,7 +59,7 @@ class ReliefF(object):
 
         for source_index in range(X.shape[0]):
             distances, indices = self.tree.query(
-                X[source_index].reshape(1, -1), k=self.n_neighbors+1)
+                X[source_index].reshape(1, -1), k=self.n_neighbors + 1)
 
             # Nearest neighbor is self, so ignore first match
             indices = indices[0][1:]
@@ -82,7 +74,7 @@ class ReliefF(object):
 
         self.top_features = np.argsort(self.feature_scores)[::-1]
 
-    def transform(self, X):
+    def _transform(self, X):
         """Reduces the feature set down to the top `n_features_to_keep` features.
 
         Parameters
@@ -100,7 +92,7 @@ class ReliefF(object):
 
         return X[:, selected_features], selected_features
 
-    def fit_transform(self, X, y):
+    def _fit_transform(self, X, y):
         """Computes the feature importance scores from the training data, then
         reduces the feature set down to the top `n_features_to_keep` features.
 
@@ -117,16 +109,8 @@ class ReliefF(object):
             Reduced feature matrix
 
         """
-        self.fit(X, y)
-        return self.transform(X)
-
-@record_duration
-def relieff_ranking(train, target, num_of_features):
-    fs = ReliefF(n_neighbors=110, n_features_to_keep=num_of_features)
-    X_train, selected_features = fs.fit_transform(
-        train, np.asarray(target).astype('int'))
-    return selected_features
-
+        self._fit(X, y)
+        return self._transform(X)
 
 # n_features_to_keep = 50
 # with open("X_test_transform", "rb") as f:
