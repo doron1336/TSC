@@ -58,8 +58,8 @@ class ReliefF(object):
         self.tree = KDTree(X)
 
         for source_index in range(X.shape[0]):
-            distances, indices = self.tree.query(
-                X[source_index].reshape(1, -1), k=self.n_neighbors + 1)
+            k = min(self.n_neighbors + 1, X.shape[0])
+            distances, indices = self.tree.query(X[source_index].reshape(1, -1), k=k)
 
             # Nearest neighbor is self, so ignore first match
             indices = indices[0][1:]
@@ -92,7 +92,7 @@ class ReliefF(object):
 
         return X[:, selected_features], selected_features
 
-    def _fit_transform(self, X, y):
+    def fit_transform(self, X, y):
         """Computes the feature importance scores from the training data, then
         reduces the feature set down to the top `n_features_to_keep` features.
 

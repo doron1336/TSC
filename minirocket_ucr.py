@@ -1,10 +1,10 @@
 import os.path
 import pickle
-from typing import Any
 
 import numpy as np
 
 from models.minirocket import fit, transform
+from utils.more_features import check_multilabel
 
 baseDir = "UCRArchive_2018"
 # List the contents of the directory with full paths
@@ -12,17 +12,10 @@ datasets = [os.path.join(os.getcwd(), baseDir, item) for item in
             os.listdir(os.path.join(os.getcwd(), baseDir))]
 
 
-def check_multilabel(y_train: np.ndarray[Any, np.dtype]) -> bool:
-    if np.max(y_train) < 3:
-        return False
-    else:
-        return True
-
-
 for dataset_path in datasets:
     print(dataset_path)
     dataset_name = dataset_path.split("/")[-1]
-    if dataset_name == ".DS_Store" or dataset_name == "Missing_value_and_variable_length_datasets_adjusted":
+    if dataset_name == ".DS_Store" or dataset_name == "Missing_value_and_variable_length_datasets_adjusted" or dataset_name == "timer.log":
         continue
     data_path = os.path.join(f"{dataset_path}_TRAIN.tsv")
 
@@ -31,7 +24,8 @@ for dataset_path in datasets:
     x_train[np.isnan(x_train)] = 0  # fill missing data with 0
     if (check_multilabel(y_train) and not os.path.isdir(os.path.join(f"{dataset_path}", "1"))
             and not os.path.isdir(os.path.join(f"{dataset_path}", "2"))
-            and not os.path.isdir(os.path.join(f"{dataset_path}", "3"))):  # check if the dataset is relevant - multilable and if we already saved a result for it
+            and not os.path.isdir(os.path.join(f"{dataset_path}",
+                                               "3"))):  # check if the dataset is relevant - multilable and if we already saved a result for it
         test_data = np.loadtxt(os.path.join(f"{dataset_path}", f"{dataset_name}_TEST.tsv"))
         y_test, x_test = test_data[:, 0].astype(np.int32), test_data[:, 1:]
         x_test[np.isnan(x_test)] = 0  # fill missing data with 0
