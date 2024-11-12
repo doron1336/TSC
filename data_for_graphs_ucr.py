@@ -2,164 +2,224 @@ import os
 import pickle
 
 import numpy as np
+import pandas as pd
 from joblib import Parallel, delayed
-from sklearn.linear_model import RidgeClassifierCV
+from sklearn.feature_selection import SelectKBest
 
-from comaprisons.comparisons_fisher import fisher_ranking
-from comaprisons.comparisons_mrmr import mrmr_ranking
+from AlgorithmManager import AlgorithmManager
+from comaprisons.comparisons_fisher import feature_ranking
 from comaprisons.comparisons_relieff import ReliefF
+from detach_rocket.detach_classes import DetachRocket
 from diffusionMaps.Diffusion_Maps import dm_ranking, dm_ranking_datafold
 from models.GA import generations
 from utils.JM import JM_flat
-from utils.more_features import check_multilabel
-from utils.timit import record_duration
+from utils.file_system import find_subfolders_with_file
+from utils.kmeans import perform_kmeans_clustering
+from utils.more_features import is_multilabel
+from utils.retrieve_minirocket import retrieve_minirocket_data
+from sklearn.feature_selection import f_classif
+from mrmr import mrmr_classif
+from utils.topK_indices import calc_score
 
+DIRECTORY_NUM = 3
 baseDir = "UCRArchive_2018"
+without_GA = 'without_GA'
+chosen_dataset = 'FaceAll'
 os.chdir(os.path.join(os.getcwd(), baseDir))
 
+failed_datasets = ["MiddlePhalanxTW", "Lightning7", "DistalPhalanxTW", "ACSF1", "PLAID", "Fungi",
+                   "LargeKitchenAppliances", "UWaveGestureLibraryX", "ElectricDevices", "DiatomSizeReduction",
+                   "ProximalPhalanxTW", "PigAirwayPressure", "PigArtPressure", "Phoneme", "FiftyWords"]
 # List the contents of the directory with full paths
 datasets = [os.path.join(os.getcwd(), item) for item in
             os.listdir(os.path.join(os.getcwd()))]
 
+DetachRocketModel = DetachRocket('minirocket', num_kernels=9996)
 
-def find_subfolders_with_file(root_folder: str, target_subfolder: str, target_file: str) -> str:
-    for root, dirs, files in os.walk(root_folder):
-        # Check if we're in the target subfolder
-        if os.path.basename(root) == target_subfolder:
-            if target_file in files:
-                # Add the parent folder of the target subfolder to the result list
-                return root_folder.split("/")[-1]
-
-
-done_datasets = [
-    find_subfolders_with_file(root_folder=dataset, target_subfolder="1", target_file="selected_200_features") for
+done_datasets_raw = [
+    find_subfolders_with_file(root_folder=dataset, target_subfolder="2", target_file="relief_ga_before") for
     dataset in datasets]
+done_datasets = list(filter(lambda x: x is not None, done_datasets_raw))
 
-
-@record_duration
-def relieff_ranking(train, target, num_of_features):
-    fs = ReliefF(n_neighbors=110, n_features_to_keep=num_of_features)
-    x_train, selected_features = fs.fit_transform(train, np.asarray(target).astype('int'))
-    return selected_features
-
-
-def execute_feature_selection(method, *args):
-    if method == 'fishers':
-        return fisher_ranking(*args)
-    elif method == 'mrmr':
-        return mrmr_ranking(*args)
-    elif method == 'relief':
-        return relieff_ranking(*args)
-    elif method == 'dm':
-        return dm_ranking(*args)
-    elif method == 'dm_datafold':
-        return dm_ranking_datafold(*args)
-    elif method == 'random':
-        return random_choosing(*args)
-
-
-def random_choosing(num_of_features):
-    array_size = 9996
-    random_indices = np.random.choice(
-        array_size, num_of_features, replace=False)
-    # selected_elements = np.zeros(array_size, dtype=bool)
-    # selected_elements[random_indices] = True
-    return random_indices
+ALGO_NAMES = ["fisher", "mrmr", "relief", "random", "kmeans_avg_jm"]
 
 
 for dataset_path in datasets:
+    algo_manager = AlgorithmManager(ALGO_NAMES)
+
+
+    @algo_manager.time_algorithm_parallel('relieff')
+    def relieff_ranking(train, target, num_of_features):
+        fs = ReliefF(n_neighbors=110, n_features_to_keep=num_of_features)
+        x_train, selected_features = fs.fit_transform(train, np.asarray(target).astype('float'))
+        return selected_features
+
+
+    @algo_manager.time_algorithm_parallel('fisher')
+    def fisher_ranking(train, target, num_of_features):
+        selector = SelectKBest(score_func=f_classif, k=num_of_features)
+        X_new = selector.fit_transform(train, target)
+        score = selector.scores_
+        return feature_ranking(score, num_of_features)
+
+
+    @algo_manager.time_algorithm_parallel('mrmr')
+    def mrmr_ranking(train, target, num_of_features):
+        return mrmr_classif(X=pd.DataFrame(train), y=pd.Series(target), K=num_of_features)
+
+
+    @algo_manager.time_algorithm_parallel('random')
+    def random_choosing(num_of_features):
+        array_size = 9996
+        random_indices = np.random.choice(
+            array_size, num_of_features, replace=False)
+        # selected_elements = np.zeros(array_size, dtype=bool)
+        # selected_elements[random_indices] = True
+        return random_indices
+
+
+    @algo_manager.time_algorithm_parallel('kmeans_avg_jm')
+    def kmeans_clustering(*args):
+        return perform_kmeans_clustering(*args)
+
+    def execute_feature_selection(method, *args):
+        # Define the mapping inside the function so it can be pickled by joblib
+        feature_selection_methods = {
+            'fishers': fisher_ranking,
+            'mrmr': mrmr_ranking,
+            'relief': relieff_ranking,
+            'dm': dm_ranking,
+            'dm_datafold': dm_ranking_datafold,
+            'random': random_choosing,
+            'kmeans_avg_jm': kmeans_clustering
+        }
+
+        try:
+            return feature_selection_methods[method](*args)
+        except KeyError:
+            raise ValueError(f"Unknown feature selection method: {method}")
+
     print(dataset_path)
+    # done_datasets = done_datasets + failed_datasets
+    done_datasets = failed_datasets
     dataset_name = dataset_path.split("/")[-1]
-    training_data = np.loadtxt(os.path.join(f"{dataset_path}", f"{dataset_name}_TRAIN.tsv"))
-    y_train, x_train = training_data[:, 0].astype(np.int32), training_data[:, 1:]
-    if dataset_name in done_datasets and check_multilabel(y_train):
+    directory = os.path.join(os.path.abspath("."), dataset_name, str(DIRECTORY_NUM))
+    print("directory ", directory)
+    # if dataset_name != chosen_dataset:
+    #     continue
+    if (dataset_name == ".DS_Store" or dataset_name == "Missing_value_and_variable_length_datasets_adjusted"
+            or dataset_name == "timer.log" or dataset_name in done_datasets):
         continue
-    for num in range(1, 2):
-        directory = os.path.join(os.path.abspath("."), dataset_name, str(num))
-        print("directory ", directory)
-        # Load the Data - miniRocket section
+    if os.path.exists(os.path.join(directory, 'selected_210_features')):
+        continue
+    training_data = np.loadtxt(os.path.join(dataset_path, f"{dataset_name}_TRAIN.tsv"))
+    y_train, x_train = training_data[:, 0].astype(np.int32), training_data[:, 1:]
+    if not is_multilabel(y_train):
+        continue
 
-        with open(f"{directory}/{dataset_name}_minirocket_train", 'rb') as file:
-            X_train_transform = pickle.load(file)
-        with open(f"{directory}/{dataset_name}_minirocket_test", 'rb') as file:
-            X_test_transform = pickle.load(file)
-        with open(f"{directory}/{dataset_name}_y_train", 'rb') as file:
-            y_train = pickle.load(file)
-        with open(f"{directory}/{dataset_name}_y_test", 'rb') as file:
-            y_test = pickle.load(file)
+    os.makedirs(os.path.join(directory, without_GA), exist_ok=True)
+    # Load the Data - miniRocket section
+    X_train_transform, X_test_transform, y_train, y_test = retrieve_minirocket_data(directory, dataset_name)
+    # GA section
+    if os.path.exists(os.path.join(directory, 'GA_results')):
+        with open(os.path.join(directory, 'GA_results'), 'rb') as file:
+            GA_results = pickle.load(file)
+        chromo_df_bc = GA_results["chromo_df_bc"]
+        score_bc = GA_results["score_bc"]
+    else:
+        chromo_df_bc, score_bc = generations(X_train_transform, y_train, size=800,
+                                             n_feat=X_train_transform.shape[1],
+                                             n_parents=640, mutation_rate=0.20, n_gen=2,
+                                             X_train=X_train_transform, X_test=X_test_transform, Y_train=y_train,
+                                             Y_test=y_test)
+        ga_results = {"chromo_df_bc": chromo_df_bc, "score_bc": score_bc}
+        with open(os.path.join(directory, 'GA_results'), 'wb') as file:
+            pickle.dump(ga_results, file)
 
-        # GA section
-        if os.path.exists(f"{directory}/GA_results"):
-            with open(f"{directory}/GA_results", 'rb') as file:
-                chromo_df_bc, score_bc = pickle.load(file)
-        else:
-            chromo_df_bc, score_bc = generations(X_train_transform, y_train, size=800,
-                                                 n_feat=X_train_transform.shape[1],
-                                                 n_parents=640, mutation_rate=0.20, n_gen=2,
-                                                 X_train=X_train_transform, X_test=X_test_transform, Y_train=y_train,
-                                                 Y_test=y_test)
-        selectedChromo = np.empty(X_train_transform.shape[1])
+    numOfSelectedFeatures = np.sum(chromo_df_bc, axis=1)
+    print("Number of features in each chromo:", numOfSelectedFeatures)
+    if os.path.exists(os.path.join(directory, without_GA, 'JM_flat_data_full')):
+        with open(os.path.join(directory, without_GA, 'JM_flat_data_full'), 'rb') as file:
+            JM_flat_data_full = pickle.load(file)
+    else:
+        JM_flat_data_full, _ = JM_flat(X_train_transform, y_train)
+        with open(os.path.join(directory, without_GA, 'JM_flat_data_full'), 'wb') as file:
+            pickle.dump(JM_flat_data_full, file)
 
-        for chromo in chromo_df_bc:
-            numOfSelectedFeatures = np.sum(chromo)
-            # if numOfSelectedFeatures > max:
-            # selectedChromo = chromo
-            print("number of features in chromo", numOfSelectedFeatures)
-        new_X_train_transform = X_train_transform[:, chromo_df_bc[1]]
-        JM_flat_data, dataMean = JM_flat(new_X_train_transform, y_train)
-        avg_jm = np.mean(JM_flat_data, axis=1)
-        with open(os.path.join(directory, "avg_jm"), 'wb') as file:
-            pickle.dump(avg_jm, file)
+    new_X_train_transform = X_train_transform[:, chromo_df_bc[1]]
+    JM_flat_data, _ = JM_flat(new_X_train_transform, y_train)
+    with open(os.path.join(directory, "JM_flat_data"), 'wb') as file:
+        pickle.dump(JM_flat_data, file)
 
-        algo_dict = {0: "fisher", 1: "mrmr", 2: "relief", 3: "dm", 4: "dm_datafold", 5: "random"}
-        predictions_dict = {"fisher": [], "mrmr": [], "relief": [], "dm": [], "dm_datafold": [], "random": []}
-        num_algos = len(algo_dict)
-        failed_datasets = []
-        for num_features in range(10, 201, 10):
-            tasks = [
-                ('fishers', new_X_train_transform, y_train, num_features),
-                ('mrmr', new_X_train_transform, y_train, num_features),
-                ('relief', new_X_train_transform, y_train, num_features),
-                ('dm', JM_flat_data, num_features, 100),
-                ('dm_datafold', JM_flat_data, num_features, 100),
-                ('random', num_features)
-            ]
-            try:
-                # Parallelize the tasks using joblib
-                results = Parallel(n_jobs=-1)(delayed(execute_feature_selection)(task[0], *task[1:]) for task in tasks)
-                # Extract results
-                fishers_selected = results[0]
-                mrmr_selected = results[1]
-                relief_selected = results[2]
-                dm_selected, dm_coordinates, labels = results[3]
-                dm_selected_datafold, dm_coordinates_datafold = results[4]
-                random_selected = results[5]
-            except Exception as e:
-                failed_datasets.append(dataset_name)
-                with open(os.path.join(directory, f"failed_datasets"), 'wb') as file:
-                    pickle.dump(failed_datasets, file)
-                print(e)
-                continue
+    # algo_dict = {0: "fisher",
+    #              1: "mrmr",
+    #              2: "relief",
+    #              # 3: "dm",
+    #              # 4: "dm_datafold",
+    #              3: "random",
+    #              4: "kmeans_avg_jm"}
+    # predictions_dict = {"fisher": [],
+    #                     "mrmr": [],
+    #                     "relief": [],
+    #                     # "dm": [],
+    #                     # "dm_datafold": [],
+    #                     "random": [],
+    #                     "kmeans_avg_jm": []}
+    failed_datasets = []
+    max_index, percentage_vector, sfd_curve, feature_importance_matrix = DetachRocketModel.fit(X=x_train,
+                                                                                               y=y_train,
+                                                                                               X_test=None,
+                                                                                               y_test=None,
+                                                                                               X_transfrom=X_train_transform,
+                                                                                               X_transform_test=None)
+    detach_rocket_data = {"max_index": max_index, "percentage_vector": percentage_vector, "sfd_curve": sfd_curve,
+                          "feature_importance_matrix": feature_importance_matrix}
+    with open(os.path.join(directory, without_GA, f"detach_rocket_data"), 'wb') as file:
+        pickle.dump(detach_rocket_data, file)
+    for num_features in range(10, 211, 20):
+        tasks = [
+            ('fishers', X_train_transform, y_train, num_features),
+            ('mrmr', X_train_transform, y_train, num_features),
+            ('relief', X_train_transform, y_train, num_features),
+            # ('dm', JM_flat_data, num_features, 100),
+            # ('dm_datafold', JM_flat_data, num_features, 100),
+            ('random', num_features),
+            ('kmeans_avg_jm', JM_flat_data_full, num_features),
+        ]
+        try:
+            # Parallelize the tasks using joblib
+            parallel_results = Parallel(n_jobs=-1)(delayed(execute_feature_selection)(task[0], *task[1:]) for task in tasks)
+            algo_manager.collect_parallel_results(parallel_results)
 
-            features_dict = {0: fishers_selected, 1: mrmr_selected,
-                             2: relief_selected, 3: dm_selected, 4: dm_selected_datafold, 5: random_selected}
-
-            dm_data = {"labels": labels, "dm_coordinates": dm_coordinates}
-            with open(os.path.join(directory, f"dm_data_{num_features}_features"), 'wb') as file:
-                pickle.dump(dm_data, file)
+            # Extract results
+            features_dict = {name: parallel_results[i]['result'] for i, name in enumerate(ALGO_NAMES)}
             with open(os.path.join(directory, f"selected_{num_features}_features"), 'wb') as file:
                 pickle.dump(features_dict, file)
+        except Exception as e:
+            failed_datasets.append(dataset_name)
+            with open(os.path.join(directory, f"failed_datasets"), 'wb') as file:
+                pickle.dump(failed_datasets, file)
+            print(e)
+            continue
 
-            for j in range(num_algos):
-                classifier_selected = RidgeClassifierCV(alphas=np.logspace(-3, 3, 10))
-                classifier_selected.fit(
-                    X_train_transform[:, features_dict[j]], y_train)
-                prediction_score = classifier_selected.score(
-                    X_test_transform[:, features_dict[j]], y_test)
-                predictions_dict[algo_dict[j]].append(prediction_score)
+        # dm_data = {"labels": labels, "dm_coordinates": dm_coordinates}
+        # with open(os.path.join(directory, f"dm_data_{num_features}_features"), 'wb') as file:
+        #     pickle.dump(dm_data, file)
 
-        for k in range(num_algos):
-            with open(os.path.join(directory, f'{algo_dict[k]}_ga_before'), 'wb') as file:
-                pickle.dump(predictions_dict[algo_dict[k]], file)
-            # with open(f'{algo_dict[k]}_selected', 'wb') as file:
-            #     pickle.dump(algo_dict[k], file)
+        for j, name in enumerate(ALGO_NAMES):
+            prediction_score = calc_score(X_train_transform[:, features_dict[name]],
+                                          X_test_transform[:, features_dict[name]], y_train, y_test)
+            algo_manager.add_prediction(algo_name=name, prediction=prediction_score)
+            # predictions_dict[algo_dict[j]].append(prediction_score)
+        done_datasets.append(dataset_name)
+    algo_manager.save(os.path.join(directory, 'algo_manager'))
+
+    # for k, name in enumerate(algo_names):
+    #     if name == 'kmeans_avg_jm':
+    #         with open(os.path.join(directory, name), 'wb') as file:
+    #             pickle.dump(predictions_dict[algo_dict[k]], file)
+    #     else:
+    #         with open(os.path.join(directory, f'{name}_ga_before'), 'wb') as file:
+    #             pickle.dump(predictions_dict[algo_dict[k]], file)
+    #     with open(f'{algo_dict[k]}_selected', 'wb') as file:
+    #         pickle.dump(algo_dict[k], file)

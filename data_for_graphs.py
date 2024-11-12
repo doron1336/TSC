@@ -11,6 +11,7 @@ from comaprisons.comparisons_relieff import ReliefF
 from diffusionMaps.Diffusion_Maps import dm_ranking, dm_ranking_datafold
 from models.GA import generations
 from utils.JM import JM_flat
+from utils.retrieve_minirocket import retrieve_minirocket_data
 from utils.timit import record_duration
 
 baseDir = "handMovement/Database"
@@ -52,15 +53,8 @@ for num in range(1, 2):
     print("directory ", directory)
     # Load the Data
     dataset_name = "handmovement"
-    # miniRocket section
-    with open(f"{directory}/{dataset_name}_minirocket_train", 'rb') as file:
-        X_train_transform = pickle.load(file)
-    with open(f"{directory}/{dataset_name}_minirocket_test", 'rb') as file:
-        X_test_transform = pickle.load(file)
-    with open(f"{directory}/{dataset_name}_y_train", 'rb') as file:
-        y_train = pickle.load(file)
-    with open(f"{directory}/{dataset_name}_y_test", 'rb') as file:
-        y_test = pickle.load(file)
+    # Load the Data - miniRocket section
+    X_train_transform, X_test_transform, y_train, y_test = retrieve_minirocket_data(directory, dataset_name)
 
     # GA section
     if os.path.exists(f"{directory}/GA_results"):
