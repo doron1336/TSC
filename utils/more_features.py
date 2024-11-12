@@ -13,7 +13,7 @@ def get_more_features(JMdictionary, firstClassNum, secClassNum, numOfClasses, nu
     return featureIndices
 
 
-def check_multilabel(y_train: np.ndarray[Any, np.dtype]) -> bool:
+def is_multilabel(y_train: np.ndarray[Any, np.dtype]) -> bool:
     if np.max(y_train) < 3:
         return False
     else:

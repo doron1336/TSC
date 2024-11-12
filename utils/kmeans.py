@@ -4,8 +4,6 @@ from numpy._typing import NDArray
 from sklearn.cluster import KMeans
 from sklearn.preprocessing import StandardScaler
 
-from apply_random import calc_score
-
 
 def perform_kmeans_clustering(data: NDArray, n_clusters: int, random_state=42, plot_elbow=True):
     """
@@ -87,4 +85,3 @@ if __name__ == "__main__":
 
     # Show figures
     plt.show()
-
