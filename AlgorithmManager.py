@@ -33,7 +33,7 @@ class AlgorithmManager:
             self.algorithms.append(name)
             self._create_mappings()
 
-    def remove_algorithm(self, name):
+    def remove_algorithm(self, name: str):
         """
         Remove an algorithm from the manager.
 
@@ -54,10 +54,16 @@ class AlgorithmManager:
             return self.predictions_dict.get(algo_name, [])
         return self.predictions_dict
 
-    def add_prediction(self, algo_name, prediction):
+    def add_prediction(self, algo_name: str, prediction: float):
         """Add a prediction for a specific algorithm."""
         if algo_name in self.predictions_dict:
             self.predictions_dict[algo_name].append(prediction)
+
+    def set_predictions(self, algo_name: str, predictions: list[float]):
+        """Add a prediction for a specific algorithm."""
+        if algo_name in self.predictions_dict:
+            self.predictions_dict[algo_name] = predictions
+
 
     def add_duration(self, algo_name, duration):
         """Add an execution duration for a specific algorithm."""
@@ -70,7 +76,7 @@ class AlgorithmManager:
             return self.durations_dict.get(algo_name, [])
         return self.durations_dict
 
-    def get_mean_duration(self, algo_name):
+    def get_mean_duration(self, algo_name: str):
         """Get mean duration for a specific algorithm."""
         durations = self.durations_dict.get(algo_name, [])
         return sum(durations) / len(durations) if durations else 0
@@ -103,7 +109,7 @@ class AlgorithmManager:
             for name in self.durations_dict:
                 self.durations_dict[name] = []
 
-    def time_algorithm_parallel(self, algo_name):
+    def time_algorithm_parallel(self, algo_name: str):
         """
         Decorator that returns both result and duration for parallel processing.
 
@@ -133,8 +139,7 @@ class AlgorithmManager:
         """
         for result_dict in parallel_results:
             algo_name = result_dict["algo_name"]
-            if algo_name in self.algorithms:
-                self.durations_dict[algo_name].append(result_dict["duration"])
+            self.durations_dict[algo_name].append(result_dict["duration"])
 
     def save(self, filepath):
         """
