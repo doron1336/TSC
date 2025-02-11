@@ -1,4 +1,8 @@
+from typing import List, Dict, Tuple
+
 import numpy as np
+from joblib import Parallel, delayed
+from numpy._typing import NDArray
 
 dictionatyJM = {}
 
@@ -67,20 +71,23 @@ def generateJMVector(X_train_transform, gt):
     return np.asarray(meanVec), np.asarray(maxVec), dictionatyJM
 
 
-def JM_flat(X_train_transform, gt):
+def process_feature(feature: NDArray, gt: List[str], i: int, dictionatyJM: Dict[int, List]) -> Tuple[NDArray, float]:
+    mat = JM_matrix(feature, gt, i)
+    iu1 = np.triu_indices(mat.shape[0], k=1)
+    flatten_upper_triangle = mat[iu1]
+    return flatten_upper_triangle, np.mean(flatten_upper_triangle)
+
+
+def JM_flat(x_train_transform: NDArray, gt: List[str], n_jobs=-1) -> Tuple[NDArray, NDArray]:
     # ment to normalize the class names (start at 0 always)
     gt_new = [int(i) for i in gt]
     if np.min(gt_new) != 0:
         gt = [str(int(i)-1) for i in gt]
-    flatArr = []
-    meanArr = []
-    for cls in range(len(np.unique(gt))):
-        dictionatyJM[cls] = []
-    for i in range(len(X_train_transform[0, :])):
-        feature = np.asarray(X_train_transform[:, i])
-        mat = JM_matrix(feature, gt, i)
-        iu1 = np.triu_indices(mat.shape[0], k=1)
-        flatten_upper_triangle = mat[iu1]
-        flatArr.append(flatten_upper_triangle)
-        meanArr.append(np.mean(flatten_upper_triangle))
-    return np.asarray(flatArr), np.asarray(meanArr)
+
+    dictionatyJM = {cls: [] for cls in range(len(np.unique(gt)))}
+    results = Parallel(n_jobs=n_jobs)(
+        delayed(process_feature)(np.asarray(x_train_transform[:, i]), gt, i, dictionatyJM)
+        for i in range(x_train_transform.shape[1])
+    )
+    flat_arr, mean_arr = zip(*results)
+    return np.asarray(flat_arr), np.asarray(mean_arr)
