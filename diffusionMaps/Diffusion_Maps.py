@@ -18,13 +18,14 @@ Last modified by Neta Rabin on 2019/02/27.
 '''
 import datafold.dynfold as dfold
 import datafold.pcfold as pfold
-import matplotlib.pyplot as plt
+import numpy
 import numpy as np
 from numpy import linalg as LA
 from scipy.spatial.distance import pdist, squareform
 # Add the parent directory of mypackage to the Python path
 from sklearn.cluster import KMeans
-import seaborn as sns
+from sklearn.preprocessing import StandardScaler
+
 from utils.timit import record_duration
 
 '''
@@ -91,29 +92,43 @@ def diffusionMapping(dataList, alpha, eps_type, t, **kwargs):
     m = a / sa[:, None]
 
     # compute eigenvectors of (a_ij)
-    vecs, eigs, _ = LA.svd(m, full_matrices=False)
-    # vecs = vecs / vecs[:, 0][:, None]
+    if np.isnan(m).any() or np.isinf(m).any():
+        print("Matrix contains NaN or infinite values")
+        # Replace NaN with column means
+        col_means = np.nanmean(m, axis=0)
+        inds = np.where(np.isnan(m))
+        m[inds] = np.take(col_means, inds[1])
+
+        # Replace infinite values with column max (excluding inf)
+        col_maxs = np.nanmax(m, axis=0)
+        inds = np.where(np.isinf(m))
+        m[inds] = np.take(col_maxs, inds[1])
+
+    scaler = StandardScaler()
+    matrix_scaled = scaler.fit_transform(m)
+
+    vecs, eigs, _ = LA.svd(matrix_scaled, full_matrices=False)
+    #     # vecs = vecs / vecs[:, 0][:, None]
 
     # Compute dimension
     # (for better performance you may want to combine this with an iterative way of computing eigenvalues/vectors)
     if kwargs['dim']:
-        embeddim = kwargs['dim']
+        embedding = kwargs['dim']
     elif kwargs['delta']:
         i = 1
         while LA.eigvals[i] ** t > kwargs['delta'] * LA.eigvals[1] ** t:
             i += 1
-        embeddim = i
+        embedding = i
 
     # Compute embedding coordinates
-    diffusion_coordinates = vecs[:, 1:embeddim +
-                                      1].T * (eigs[1:embeddim + 1][:, None] ** t)
+    diffusion_coordinates = vecs[:, 1: embedding + 1].T * (eigs[1: embedding + 1][:, None] ** t)
     # print(f"epsilon={epsilon}")
 
     return (vecs, eigs, diffusion_coordinates.T, dataList, epsilon)
 
 
 @record_duration
-def dm_ranking(data, num_of_features, q):
+def dm_ranking(data: numpy.memmap, num_of_features: int, q):
     avg_jm = np.mean(data, axis=1)
     eps_type = 'mean'  # mean' #or maxmin
     alpha = 1
@@ -138,7 +153,7 @@ def dm_ranking(data, num_of_features, q):
     # for label in u_labels:
     #     plt.scatter(coordinates[labels == label][:, 0], coordinates[labels == label][:, 1], color=palette[label], label=f'Cluster {label}')
 
-    # Pick best features
+    # Pick best features - picks the best feature according to its avg_jm score in each cluster.
     selected_features = []
     for i in u_labels:
         arr = np.copy(avg_jm)
