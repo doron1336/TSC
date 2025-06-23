@@ -203,7 +203,7 @@ def process_fold(algo_manager: AlgorithmManager, fold_num: int, train_idx: np.nd
 
 DetachRocketModel = DetachRocket('minirocket', num_kernels=9996)
 
-miniRocket_results = pd.read_csv('/Users/doron/Desktop/personal/thesis/TSC/datasets_scores_4.csv')
+miniRocket_results = pd.read_csv('/datasets_scores_4.csv')
 datasets = miniRocket_results.Dataset
 
 
