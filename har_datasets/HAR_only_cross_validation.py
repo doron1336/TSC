@@ -24,6 +24,7 @@ from utils.more_features import is_multilabel
 from utils.retrieve_minirocket import apply_minirocket_transform, load_ucr_dataset
 from utils.topK_indices import calc_score
 
+HAR_DATASETS = ['GestureMidAirD3', 'GestureMidAirD2', 'UWaveGestureLibraryAll', 'GesturePebbleZ2', 'AllGestureWiimoteX', 'CricketX', 'CricketY']
 
 def check_if_HAR(dataset_name: str) -> bool:
     """
@@ -31,7 +32,7 @@ def check_if_HAR(dataset_name: str) -> bool:
     HAR datasets typically have 'HAR' in their name.
     """
     _, type = fetch_description(dataset_name)
-    if type == 'HAR':
+    if type == 'HAR' or dataset_name in HAR_DATASETS:
         return True
     return False
 
@@ -203,7 +204,7 @@ def process_fold(algo_manager: AlgorithmManager, fold_num: int, train_idx: np.nd
 
 DetachRocketModel = DetachRocket('minirocket', num_kernels=9996)
 
-miniRocket_results = pd.read_csv('/datasets_scores_4.csv')
+miniRocket_results = pd.read_csv('/Users/doron/Desktop/personal/thesis/TSC/datasets_scores_4.csv')
 datasets = miniRocket_results.Dataset
 
 
