@@ -73,36 +73,3 @@ for dataset_name in HAR_DATASETS:
     with open(os.path.join(mmd_dir, 'arrays.pkl'), "wb") as f:
         pickle.dump({"prediction_score_trimmed": prediction_score_trimmed, "prediction_score_selected": prediction_score_selected,
                      "mmd_result": mmd_result}, f)
-
-# Modified plotting code
-# import matplotlib.pyplot as plt
-#
-# # Create plot with two y-axes and solid lines
-# fig, ax1 = plt.subplots()
-#
-# # Plot MMD score on the left y-axis with solid line
-# ax1.plot(percentages, mmd_result, '-o', label='MMD Score', color='red', markersize=5)
-# ax1.set_xlabel('Percentage of Features Kept (%)')
-# ax1.set_ylabel('MMD Score', color='red')
-# ax1.tick_params(axis='y', labelcolor='red')
-#
-# # Create second y-axis for prediction scores
-# ax2 = ax1.twinx()
-# ax2.plot(percentages, prediction_score_trimmed, '-^', label='Prediction Score (Trimmed)', color='blue', markersize=5)
-# ax2.plot(percentages, prediction_score_selected, '-s', label='Prediction Score (Selected)', color='green', markersize=5)
-# ax2.set_ylabel('Prediction Score', color='blue')
-# ax2.tick_params(axis='y', labelcolor='blue')
-#
-# # Add title
-# plt.title('MMD and Prediction Scores vs Percentage of Features Kept')
-#
-# # Combine legends from both axes
-# lines1, labels1 = ax1.get_legend_handles_labels()
-# lines2, labels2 = ax2.get_legend_handles_labels()
-# ax1.legend(lines1 + lines2, labels1 + labels2, loc='best')
-#
-# # Adjust layout to prevent overlap
-# plt.tight_layout()
-#
-# # Show plot
-# plt.show()
