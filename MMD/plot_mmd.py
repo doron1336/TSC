@@ -38,26 +38,34 @@ for dataset_name in HAR_DATASETS:
     ax1.set_xlabel('Percentage of Features Kept (%)')
     ax1.set_ylabel('MMD Score', color='red')
     ax1.tick_params(axis='y', labelcolor='red')
+    # Add grid to the first axis
+    ax1.grid(True, linestyle='--', alpha=0.5)
 
     # Create second y-axis for prediction scores
     ax2 = ax1.twinx()
-    ax2.plot(percentages, prediction_score_trimmed, '-^', label='Prediction Score (Trimmed)', color='blue', markersize=5)
-    ax2.plot(percentages, prediction_score_selected, '-s', label='Prediction Score (Selected)', color='green', markersize=5)
+    ax2.plot(percentages, prediction_score_trimmed, '-^', label='Prediction Score (Trimmed)', color='blue',
+             markersize=5)
+    ax2.plot(percentages, prediction_score_selected, '-s', label='Prediction Score (Selected)', color='green',
+             markersize=5)
     ax2.set_ylabel('Prediction Score', color='blue')
     ax2.tick_params(axis='y', labelcolor='blue')
 
     # Add title
     plt.title('MMD and Prediction Scores vs Percentage of Features Kept')
 
-    # Combine legends from both axes
+    # Combine legends from both axes and place below the plot
     lines1, labels1 = ax1.get_legend_handles_labels()
     lines2, labels2 = ax2.get_legend_handles_labels()
-    ax1.legend(lines1 + lines2, labels1 + labels2, loc='best')
+    ax1.legend(lines1 + lines2, labels1 + labels2, loc='upper center', bbox_to_anchor=(0.5, -0.15), borderaxespad=0.,
+               ncol=3)
 
-    # Adjust layout to prevent overlap
+    # Adjust layout to prevent overlap and accommodate legend
     plt.tight_layout()
+    plt.subplots_adjust(bottom=0.2)  # Increase bottom margin to prevent legend cutoff
+
     output_path = os.path.join(mmd_dir, f'{dataset_name}_plot.png')
     plt.savefig(output_path)  # Save as PNG (or use .pdf, .svg, etc.)
 
     # Show plot
-    # plt.show()
+    plt.show()
+    plt.close()
