@@ -3,17 +3,22 @@ import os
 import pickle
 import numpy as np
 
+baseDir = "handMovement/Database"
+os.chdir(baseDir)
+base_directory = os.getcwd()
 
-def average_of_list(list):
-    list_to_use = np.array(list)
 
-    return np.sum(list_to_use,0) / len(list_to_use)
+def average_of_list(array) -> float:
+    list_to_use = np.array(array)
+
+    return np.sum(list_to_use, 0) / len(list_to_use)
+
 
 mrmr, fisher, dm, dm_datafold, random, relief = [], [], [], [], [], []
-for dir in range(1,6):
-    print("directory ", dir)
+for directory in range(1, 2):
+    print("directory ", directory)
     # Load the Data
-    os.chdir(f"C:\\Users\\doron\\OneDrive\\Desktop\\thesis\\TSC\\handMovement\\Database\\handmovement3\\{dir}")
+    os.chdir(os.path.join(base_directory, "handmovement8", str(directory)))
     with open("mrmr_ga_before", 'rb') as file:
         mrmr.append(pickle.load(file))
     with open("fisher_ga_before", 'rb') as file:
@@ -26,7 +31,7 @@ for dir in range(1,6):
         random.append(pickle.load(file))
     with open("relief_ga_before", 'rb') as file:
         relief.append(pickle.load(file))
-    
+
 mrmr_avg = average_of_list(mrmr)
 fisher_avg = average_of_list(fisher)
 dm_avg = average_of_list(dm)
@@ -49,11 +54,10 @@ relief_avg = average_of_list(relief)
 # with open("relief_selected", 'rb') as file:
 #     relief_selected = pickle.load(file)
 
-with open("dm_coordinates", 'rb') as file:
-    dm_coordinates = pickle.load(file)
+# with open("dm_coordinates", 'rb') as file:
+#     dm_coordinates = pickle.load(file)
 with open("avg_jm", 'rb') as file:
     avg_jm = pickle.load(file)
-
 
 x1 = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110,
       120, 130, 140, 150, 160, 170, 180, 190, 200]

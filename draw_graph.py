@@ -9,7 +9,8 @@ from AlgorithmManager import AlgorithmManager
 from utils.retrieve_minirocket import retrieve_minirocket_data
 
 features_array = range(10, 211, 20)
-DIRECTORY_NUM = 4
+# DIRECTORY_NUM will be set in the loop for each fold
+NUM_FOLDS = 5  # Adjust this to match your actual number of folds
 
 
 def algo_results_manager(dataset: str, target_subfolder: str, file_name: str) -> pickle:
@@ -31,69 +32,96 @@ def detached_score(detached_rocket: dict, X_train_transform: np.ndarray, X_test_
     return scores_array
 
 
-baseDir = "UCRArchive_2018"
+baseDir = "UCRArchive_2018/HAR_datasets"
 os.chdir(os.path.join(os.getcwd(), baseDir))
-# List the contents of the directory with full paths
-datasets = [os.path.join(os.getcwd(), item) for item in
-            os.listdir(os.path.join(os.getcwd()))]
-dataset_name = 'GestureMidAirD3'
-data = {}
-try:
-    scores_dict = {}
-    duration_dict = {}
-    directory = os.path.join(os.path.abspath("."), dataset_name, str(DIRECTORY_NUM))
 
-    X_train_transform, X_test_transform, y_train, y_test = retrieve_minirocket_data(directory, dataset_name)
-    with open(os.path.join(directory, 'without_GA', 'detach_rocket_data'), 'rb') as file:
-        detached_rocket_results = pickle.load(file)
-    # detached_rocket_scores = detached_score(detached_rocket_results, X_train_transform, X_test_transform,
-    #                                         y_train,
-    #                                         y_test)
-    results = algo_results_manager(dataset=dataset_name, target_subfolder=str(DIRECTORY_NUM),
-                                   file_name='algo_manager')
-    # All_features_score = miniRocket_results.loc[
-    #     miniRocket_results["Dataset"] == dataset_name, "Score_miniRocket"].item()
-    for algo_name in results.algorithms:
-        scores_dict[algo_name] = results.get_predictions(algo_name)
-        if results.get_durations(algo_name) == []:
-            duration_dict[algo_name] = [0] * len(features_array)
-        else:
-            duration_dict[algo_name] = results.get_durations(algo_name)  # Creating a DataFrame with the scores
-    for algo in results.algorithms:
-        if algo == "detached":
-            algo_predictions = results.predictions_dict[algo]
-            algo_duration = results.durations_dict[algo][0]
-        else:
-            algo_predictions = results.predictions_dict[algo]
-            algo_duration = results.durations_dict[algo][6]
-        # Classification scores for 5 algorithms (y-axis)
-        data[algo] = [algo_predictions[index] for index in range(len(features_array))]
+# dataset_name = 'GestureMidAirD3'
+HAR_DATASETS = ['GestureMidAirD3', 'GestureMidAirD2', 'UWaveGestureLibraryAll', 'GesturePebbleZ2', 'AllGestureWiimoteX',
+                'CricketX', 'CricketY']
+# HAR_DATASETS = ['GestureMidAirD3']
 
-except Exception as e:
-    print(e)
+# Create main output directory
+output_base_dir = '/Users/doron/Desktop/personal/thesis/TSC/plots_averaged'
+os.makedirs(output_base_dir, exist_ok=True)
 
+# Loop through each dataset
+for dataset_name in HAR_DATASETS:
+    print(f"\n{'='*60}")
+    print(f"Processing Dataset: {dataset_name}")
+    print(f"{'='*60}\n")
 
+    # Dictionary to accumulate results across all folds
+    # Structure: {algo_name: [[fold1_scores], [fold2_scores], ...]}
+    all_folds_data = {}
 
+    try:
+        # Loop through each fold to collect data
+        for fold_num in range(1, NUM_FOLDS + 1):
+            print(f"Loading fold {fold_num} for {dataset_name}...")
+            directory = os.path.join(os.path.abspath("."), dataset_name, str(fold_num))
 
-# Create the plot
-plt.figure(figsize=(10, 6))
+            try:
+                results = algo_results_manager(dataset=dataset_name, target_subfolder=str(fold_num),
+                                               file_name='algo_manager')
 
-# Plot each algorithm's performance with distinct colors
-plt.plot(features_array, data["fisher"], marker='o', color='#1f77b4', label='Fisher')         # Blue
-plt.plot(features_array, data["mrmr"], marker='s', color='#ff7f0e', label='MrMr')            # Orange
-plt.plot(features_array, data["relieff"], marker='^', color='#2ca02c', label='Relieff')      # Green
-plt.plot(features_array, data['random'], marker='*', color='#9467bd', label='Random')        # Purple
-plt.plot(features_array, data["kmeans_avg_jm"], marker='d', color='#000000', label='Kmeans_ang_JM')  # Black
-plt.plot(features_array, data["detached"], marker='x', color='#17becf', label='Detached')    # Cyan
+                for algo in results.algorithms:
+                    if algo == "detached":
+                        algo_predictions = results.predictions_dict[algo]
+                    else:
+                        algo_predictions = results.predictions_dict[algo]
 
-# Customize the plot
-plt.xlabel('Number of Features Selected')
-plt.ylabel('Classification Score')
-plt.title('Classification Score vs. Number of Features Selected')
-plt.grid(True)
-plt.legend()  # Display the legend
-plt.xticks(features_array)  # Ensure all feature numbers are shown on x-axis
+                    # Extract scores for this fold
+                    fold_scores = [algo_predictions[index] for index in range(len(features_array))]
 
-# Display the plot
-plt.tight_layout()
-plt.show()
+                    # Initialize list for this algorithm if first time seeing it
+                    if algo not in all_folds_data:
+                        all_folds_data[algo] = []
+
+                    all_folds_data[algo].append(fold_scores)
+
+            except Exception as e:
+                print(f"Warning: Could not load fold {fold_num} for {dataset_name}: {e}")
+                continue
+
+        # Calculate averages across folds for each algorithm
+        averaged_data = {}
+        for algo, folds_list in all_folds_data.items():
+            # Convert to numpy array for easy averaging: shape (num_folds, num_feature_points)
+            folds_array = np.array(folds_list)
+            # Average across folds (axis=0)
+            averaged_data[algo] = np.mean(folds_array, axis=0)
+            print(f"  {algo}: averaged across {len(folds_list)} folds")
+
+        # Create the plot
+        plt.figure(figsize=(10, 6))
+
+        # Plot each algorithm's performance with distinct colors
+        # JMK-FS first (leftmost in legend)
+        plt.plot(features_array, averaged_data["kmeans_avg_jm"], marker='d', color='#000000', label='JMK-FS', linewidth=2)  # Black
+        plt.plot(features_array, averaged_data["fisher"], marker='o', color='#1f77b4', label='Fisher')         # Blue
+        plt.plot(features_array, averaged_data["mrmr"], marker='s', color='#ff7f0e', label='MrMr')            # Orange
+        plt.plot(features_array, averaged_data["relieff"], marker='^', color='#2ca02c', label='Relieff')      # Green
+        plt.plot(features_array, averaged_data['random'], marker='*', color='#9467bd', label='Random')        # Purple
+        plt.plot(features_array, averaged_data["detached"], marker='x', color='#17becf', label='Detached')    # Cyan
+
+        # Customize the plot
+        plt.xlabel('Number of Features Selected', fontsize=14)
+        plt.ylabel('Classification Score', fontsize=14)
+        plt.grid(True)
+        plt.legend(fontsize=12, bbox_to_anchor=(0.5, -0.15), loc='upper center', ncol=6)  # Legend below plot in single line
+        plt.xticks(features_array, fontsize=14)  # Ensure all feature numbers are shown on x-axis
+        plt.yticks(fontsize=14)
+
+        # Display the plot
+        plt.tight_layout()
+        output_path = os.path.join(output_base_dir, f'{dataset_name}_averaged.png')
+        plt.savefig(output_path, dpi=300, bbox_inches='tight')  # Save with high quality
+        plt.close()  # Close the figure to free memory
+        print(f"Saved averaged plot: {output_path}\n")
+
+    except Exception as e:
+        print(f"Error processing {dataset_name}: {e}\n")
+
+print(f"\n{'='*60}")
+print(f"All averaged plots saved to: {output_base_dir}")
+print(f"{'='*60}")

@@ -14,7 +14,8 @@ os.chdir(path)
 HAR_directory = os.path.join(os.getcwd(), "HAR_datasets")
 
 # List the contents of the directory with full paths
-datasets = ["GestureMidAirD3", "GestureMidAirD2", "UWaveGestureLibraryAll"]
+datasets = ["GestureMidAirD3", "GestureMidAirD2", "GesturePebbleZ2", "UWaveGestureLibraryAll",
+            "AllGestureWiimoteX", "CricketX", "CricketY"]
 
 FEATURES_ARRAY = range(10, 211, 20)
 columns = ["Algo_name", "Dataset_name", "All_features"] + list(range(10, 211, 20)) + ["Type"]
@@ -73,31 +74,30 @@ algo_dict = {"fisher": "fisher_ga_before", "mrmr": "mrmr_ga_before", "relief": "
 data = []
 dataframes = {}
 for dataset_name in datasets:
-    for i in range(1, 6):
-        try:
-            duration_dict = {}
-            dataset_directory = os.path.join(HAR_directory, dataset_name)
-            results = algo_results_manager(dataset_path=dataset_directory, target_subfolder=str(i),
-                                           file_name='algo_manager')
-            All_features_score = miniRocket_results.loc[
-                miniRocket_results["Dataset"] == dataset_name, "Score_miniRocket"].item()
-            for algo_name in results.algorithms:
-                scores_df = aggregate_scores(algo_name=algo_name, dataset_path=dataset_directory)
-                durations_df = aggregate_durations(algo_name=algo_name, dataset_path=dataset_directory)
-                dataset_description, dataset_type = fetch_description(dataset_name)
-                data.append({"Algo_name": algo_name,
-                             "Dataset_name": dataset_name,
-                             "All_features": All_features_score,
-                             **{num_features: f"Score: {scores_df.iloc[0, index]} Duration: {durations_df.iloc[0, index]}"
-                                 for index, num_features in enumerate(FEATURES_ARRAY)},
-                             "Type": dataset_type})
-        except Exception as e:
-            logging.info(e, exc_info=True)
+    try:
+        duration_dict = {}
+        dataset_directory = os.path.join(HAR_directory, dataset_name)
+        results = algo_results_manager(dataset_path=dataset_directory, target_subfolder='1',
+                                       file_name='algo_manager')
+        All_features_score = miniRocket_results.loc[
+            miniRocket_results["Dataset"] == dataset_name, "Score_miniRocket"].item()
+        for algo_name in results.algorithms:
+            scores_df = aggregate_scores(algo_name=algo_name, dataset_path=dataset_directory)
+            durations_df = aggregate_durations(algo_name=algo_name, dataset_path=dataset_directory)
+            dataset_description, dataset_type = fetch_description(dataset_name)
+            data.append({"Algo_name": algo_name,
+                         "Dataset_name": dataset_name,
+                         "All_features": All_features_score,
+                         **{num_features: f"Score: {scores_df.iloc[0, index]} Duration: {durations_df.iloc[0, index]}"
+                            for index, num_features in enumerate(FEATURES_ARRAY)},
+                         "Type": dataset_type})
+    except Exception as e:
+        logging.info(e, exc_info=True)
 
     # Create the DataFrame
-    df = pd.DataFrame(data)
+df = pd.DataFrame(data)
 
-    # Reorder columns if needed
-    df = df[columns]
+# Reorder columns if needed
+df = df[columns]
 
-    df.to_csv(os.path.join(HAR_directory, 'scores_dataframe_fold.csv'), index=False)
+df.to_csv(os.path.join(HAR_directory, 'scores_dataframe_fold2.csv'), index=False)

@@ -35,7 +35,7 @@ for dataset_name in HAR_DATASETS:
 
     # Plot MMD score on the left y-axis with solid line
     ax1.plot(percentages, mmd_result, '-o', label='MMD Score', color='red', markersize=5)
-    ax1.set_xlabel('Percentage of Features Kept (%)')
+    ax1.set_xlabel('Percentage of Signal Kept (%)')
     ax1.set_ylabel('MMD Score', color='red')
     ax1.tick_params(axis='y', labelcolor='red')
     # Add grid to the first axis
@@ -51,7 +51,7 @@ for dataset_name in HAR_DATASETS:
     ax2.tick_params(axis='y', labelcolor='blue')
 
     # Add title
-    plt.title('MMD and Prediction Scores vs Percentage of Features Kept')
+    plt.title('MMD and Prediction Scores vs Percentage of Signal Kept')
 
     # Combine legends from both axes and place below the plot
     lines1, labels1 = ax1.get_legend_handles_labels()
@@ -63,7 +63,7 @@ for dataset_name in HAR_DATASETS:
     plt.tight_layout()
     plt.subplots_adjust(bottom=0.2)  # Increase bottom margin to prevent legend cutoff
 
-    output_path = os.path.join(mmd_dir, f'{dataset_name}_plot.png')
+    output_path = os.path.join('/Users/doron/Desktop/ddd/MMD', f'{dataset_name}_plot.png')
     plt.savefig(output_path)  # Save as PNG (or use .pdf, .svg, etc.)
 
     # Show plot

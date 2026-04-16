@@ -10,6 +10,7 @@ from mrmr import mrmr_classif
 from sklearn.feature_selection import SelectKBest
 from sklearn.feature_selection import f_classif
 from sklearn.linear_model import RidgeClassifierCV
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import StratifiedKFold
 
 from AlgorithmManager import AlgorithmManager
@@ -22,17 +23,20 @@ from utils.file_system import save_to_pickle
 from utils.kmeans import perform_kmeans_clustering
 from utils.more_features import is_multilabel
 from utils.retrieve_minirocket import apply_minirocket_transform, load_ucr_dataset
-from utils.topK_indices import calc_score
+from utils.topK_indices import calc_score, calc_score_rf
 
-HAR_DATASETS = ['GestureMidAirD3', 'GestureMidAirD2', 'UWaveGestureLibraryAll', 'GesturePebbleZ2', 'AllGestureWiimoteX', 'CricketX', 'CricketY']
+# HAR_DATASETS = ['GestureMidAirD3', 'GestureMidAirD2', 'UWaveGestureLibraryAll', 'GesturePebbleZ2', 'AllGestureWiimoteX',
+#                 'CricketX', 'CricketY']
+
+HAR_DATASETS = ['CricketX']
 
 def check_if_HAR(dataset_name: str) -> bool:
     """
     Check if the dataset is a Human Activity Recognition (HAR) dataset.
     HAR datasets typically have 'HAR' in their name.
     """
-    _, type = fetch_description(dataset_name)
-    if type == 'HAR' or dataset_name in HAR_DATASETS:
+    # _, type = fetch_description(dataset_name)
+    if dataset_name in HAR_DATASETS:
         return True
     return False
 
@@ -77,10 +81,13 @@ def detached_score(detached_rocket: dict, X_train_transform: np.ndarray, X_test_
     scores_array = []
     for num_features in features_array:
         classifier_selected = RidgeClassifierCV(alphas=np.logspace(-3, 3, 10))
+        classifier_selected_2 = RandomForestClassifier(n_estimators=100, random_state=42)
         detach_rocket_selected = np.argsort(feature_importance_matrix[max_index])[-num_features:]
         classifier_selected.fit(X_train_transform[:, detach_rocket_selected], y_train)
+        classifier_selected_2.fit(X_train_transform[:, detach_rocket_selected], y_train)
         prediction_score = classifier_selected.score(X_test_transform[:, detach_rocket_selected], y_test)
-        print(f"prediction_score for detached rocket model: {prediction_score}")
+        prediction_score_2 = classifier_selected_2.score(X_test_transform[:, detach_rocket_selected], y_test)
+        print(f"prediction_score for detached rocket model: {prediction_score_2}")
         scores_array.append(prediction_score)
     return scores_array
 
@@ -193,6 +200,12 @@ def process_fold(algo_manager: AlgorithmManager, fold_num: int, train_idx: np.nd
                     y_train_fold,
                     y_test_fold
                 )
+                prediction_score_rf = calc_score_rf(
+                    X_train_transform[:, features_dict[name]],
+                    X_test_transform[:, features_dict[name]],
+                    y_train_fold,
+                    y_test_fold
+                )
                 algo_manager.add_prediction(algo_name=name, prediction=prediction_score)
         except Exception as e:
             print(f"Error processing {dataset_name} fold {fold_num} with {num_features} features: {e}")
@@ -253,8 +266,9 @@ def main(
 
                 # Process the fold
                 process_fold(
-                    algo_manager, fold_num, train_idx, test_idx, X, y,
-                    dataset_name, directory, features_array, feature_selection_methods
+                    algo_manager=algo_manager, fold_num=fold_num, train_idx=train_idx, test_idx=test_idx, X=X, y=y,
+                    dataset_name=dataset_name, directory=directory, features_array=features_array,
+                    feature_selection_methods=feature_selection_methods
                 )
 
         except Exception as e:
@@ -264,7 +278,7 @@ def main(
 
 if __name__ == "__main__":
     baseDir = "UCRArchive_2018"
-    os.chdir(os.path.join(os.getcwd(), baseDir))
+    os.chdir('/Users/doron/Desktop/personal/thesis/TSC/UCRArchive_2018')
     datasets_directory = os.path.join(os.getcwd())
     ALGO_NAMES = ["fisher", "mrmr", "relieff", "random", "kmeans_avg_jm"]
 
