@@ -1,3 +1,4 @@
+import os
 """
 Professional pipeline diagram for scientific paper
 Clean, modern design following academic standards
@@ -5,6 +6,7 @@ Clean, modern design following academic standards
 import matplotlib.pyplot as plt
 from matplotlib.patches import FancyBboxPatch, FancyArrowPatch, Rectangle
 import numpy as np
+import paths  # noqa: F401  # TSC path config
 
 # Create figure with better proportions
 fig = plt.figure(figsize=(20, 4.5), facecolor='white')
@@ -206,12 +208,12 @@ ax.text(x5 + w5/2, y_pos + 0.2, r'$\hat{\mathbf{y}}$',
 plt.tight_layout()
 
 # Save as PNG (high resolution for LaTeX)
-output_path_png = '/Users/doron/Desktop/personal/thesis/TSC/visualizations/scientific_pipeline_diagram.png'
+output_path_png = os.path.join(paths.FIGURES_DIR, 'scientific_pipeline_diagram.png')
 plt.savefig(output_path_png, dpi=300, bbox_inches='tight', facecolor='white', edgecolor='none', pad_inches=0.1)
 print(f"✓ PNG saved to: {output_path_png}")
 
 # Save as PDF (vector format - best for LaTeX papers)
-output_path_pdf = '/Users/doron/Desktop/personal/thesis/TSC/visualizations/scientific_pipeline_diagram.pdf'
+output_path_pdf = os.path.join(paths.FIGURES_DIR, 'scientific_pipeline_diagram.pdf')
 plt.savefig(output_path_pdf, format='pdf', bbox_inches='tight', facecolor='white', edgecolor='none', pad_inches=0.1)
 print(f"✓ PDF saved to: {output_path_pdf}")
 

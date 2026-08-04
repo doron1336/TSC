@@ -12,14 +12,14 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 from matplotlib.gridspec import GridSpec
-from utils.JM import JM_flat, JM_matrix, computeJM
-from utils.retrieve_minirocket import retrieve_minirocket_data
+from TSC.utils.JM import JM_flat, JM_matrix, computeJM
+from TSC.utils.retrieve_minirocket import retrieve_minirocket_data
+import paths  # noqa: F401  # TSC path config (TSC_CODE_DIR, TSC_DATA_DIR, TSC_RESULTS_DIR)
 
 # Configuration
 DATASET_NAME = 'UWaveGestureLibraryAll'  # Can be changed to any HAR dataset
 DIRECTORY_NUM = 3
-BASE_DIR = '/Users/doron/Desktop/personal/thesis/TSC/UCRArchive_2018'
-
+BASE_DIR = str(paths.UCR_DIR)
 # Load data
 print(f"Loading dataset: {DATASET_NAME}")
 directory = os.path.join(BASE_DIR, DATASET_NAME, str(DIRECTORY_NUM))
@@ -174,7 +174,7 @@ fig.suptitle(f'JM-based Feature Separability Analysis\nDataset: {DATASET_NAME}',
             fontsize=14, fontweight='bold', y=0.98)
 
 # Save figure
-output_path = f'/Users/doron/Desktop/personal/thesis/TSC/visualizations/jm_class_separation_{DATASET_NAME}.png'
+output_path = os.path.join(paths.FIGURES_DIR, f'jm_class_separation_{DATASET_NAME}.png')
 plt.savefig(output_path, dpi=300, bbox_inches='tight', facecolor='white')
 print(f"\nClass separation visualization saved to: {output_path}")
 

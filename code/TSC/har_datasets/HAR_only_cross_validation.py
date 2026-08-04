@@ -13,17 +13,18 @@ from sklearn.linear_model import RidgeClassifierCV
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import StratifiedKFold
 
-from AlgorithmManager import AlgorithmManager
-from comaprisons.comparisons_fisher import feature_ranking
-from comaprisons.comparisons_relieff import ReliefF
+from TSC.AlgorithmManager import AlgorithmManager
+from TSC.comaprisons.comparisons_fisher import feature_ranking
+from TSC.comaprisons.comparisons_relieff import ReliefF
 from detach_rocket.detach_classes import DetachRocket
-from utils.JM import JM_flat
-from utils.datasets_descriptions import fetch_description
-from utils.file_system import save_to_pickle
-from utils.kmeans import perform_kmeans_clustering
-from utils.more_features import is_multilabel
-from utils.retrieve_minirocket import apply_minirocket_transform, load_ucr_dataset
-from utils.topK_indices import calc_score, calc_score_rf
+from TSC.utils.JM import JM_flat
+from TSC.utils.datasets_descriptions import fetch_description
+from TSC.utils.file_system import save_to_pickle
+from TSC.utils.kmeans import perform_kmeans_clustering
+from TSC.utils.more_features import is_multilabel
+from TSC.utils.retrieve_minirocket import apply_minirocket_transform, load_ucr_dataset
+from TSC.utils.topK_indices import calc_score, calc_score_rf
+import paths  # noqa: F401  # TSC path config (TSC_CODE_DIR, TSC_DATA_DIR, TSC_RESULTS_DIR)
 
 # HAR_DATASETS = ['GestureMidAirD3', 'GestureMidAirD2', 'UWaveGestureLibraryAll', 'GesturePebbleZ2', 'AllGestureWiimoteX',
 #                 'CricketX', 'CricketY']
@@ -217,7 +218,7 @@ def process_fold(algo_manager: AlgorithmManager, fold_num: int, train_idx: np.nd
 
 DetachRocketModel = DetachRocket('minirocket', num_kernels=9996)
 
-miniRocket_results = pd.read_csv('/Users/doron/Desktop/personal/thesis/TSC/datasets_scores_4.csv')
+miniRocket_results = pd.read_csv(os.path.join(paths.UCR_DIR, 'datasets_scores_4.csv'))
 datasets = miniRocket_results.Dataset
 
 
@@ -277,12 +278,10 @@ def main(
 
 
 if __name__ == "__main__":
-    baseDir = "UCRArchive_2018"
-    os.chdir('/Users/doron/Desktop/personal/thesis/TSC/UCRArchive_2018')
-    datasets_directory = os.path.join(os.getcwd())
+    datasets_directory = str(paths.UCR_DIR)
     ALGO_NAMES = ["fisher", "mrmr", "relieff", "random", "kmeans_avg_jm"]
 
-    HAR_directory = os.path.join(os.getcwd(), "HAR_datasets")
+    HAR_directory = os.path.join(paths.UCR_DIR, "HAR_datasets")
 
     # Example configuration (replace with actual values)
     datasets: List[str] = miniRocket_results.Dataset

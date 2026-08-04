@@ -8,14 +8,14 @@ import pickle
 import matplotlib.pyplot as plt
 import numpy as np
 
-from utils.JM import JM_matrix, JM_flat
-from utils.retrieve_minirocket import retrieve_minirocket_data
+from TSC.utils.JM import JM_matrix, JM_flat
+from TSC.utils.retrieve_minirocket import retrieve_minirocket_data
+import paths  # noqa: F401  # TSC path config (TSC_CODE_DIR, TSC_DATA_DIR, TSC_RESULTS_DIR)
 
 # Configuration
 DATASET_NAME = 'UWaveGestureLibraryAll'  # Can be changed to any HAR dataset
 DIRECTORY_NUM = 3
-BASE_DIR = '/Users/doron/Desktop/personal/thesis/TSC/UCRArchive_2018'
-
+BASE_DIR = str(paths.UCR_DIR)
 print(f"Loading dataset: {DATASET_NAME}")
 directory = os.path.join(BASE_DIR, DATASET_NAME, str(DIRECTORY_NUM))
 X_train_transform, X_test_transform, y_train, y_test = retrieve_minirocket_data(directory, DATASET_NAME)
@@ -182,7 +182,7 @@ fig.suptitle(f'JM Distance Matrix: Quantifying Feature Discriminative Power\n'
 plt.tight_layout(rect=[0, 0.12, 1, 0.95])
 
 # Save figure
-output_path = f'/Users/doron/Desktop/personal/thesis/TSC/visualizations/jm_heatmap_comparison_{DATASET_NAME}_1.png'
+output_path = os.path.join(paths.FIGURES_DIR, f'jm_heatmap_comparison_{DATASET_NAME}_1.png')
 plt.savefig(output_path, dpi=300, bbox_inches='tight', facecolor='white')
 print(f"\n✓ JM heatmap saved to: {output_path}")
 

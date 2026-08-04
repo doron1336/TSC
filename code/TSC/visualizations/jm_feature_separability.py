@@ -11,14 +11,13 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 from matplotlib.gridspec import GridSpec
-from utils.JM import JM_flat, JM_matrix, computeJM
-from utils.retrieve_minirocket import retrieve_minirocket_data
+from TSC.utils.JM import JM_flat, JM_matrix, computeJM
+from TSC.utils.retrieve_minirocket import retrieve_minirocket_data
 
 # Configuration - change these as needed
 DATASET_NAME = 'GestureMidAirD3'
 DIRECTORY_NUM = 3
-BASE_DIR = '/Users/doron/Desktop/personal/thesis/TSC/UCRArchive_2018'
-
+BASE_DIR = str(paths.UCR_DIR)
 print(f"Loading dataset: {DATASET_NAME}")
 directory = os.path.join(BASE_DIR, DATASET_NAME, str(DIRECTORY_NUM))
 
@@ -160,6 +159,7 @@ ax1.spines['right'].set_visible(False)
 
 # Add legend for highlighted features
 from matplotlib.patches import Patch
+import paths  # noqa: F401  # TSC path config (TSC_CODE_DIR, TSC_DATA_DIR, TSC_RESULTS_DIR)
 legend_elements = [Patch(facecolor=color, edgecolor='black', label=title)
                   for _, title, color in selected_features]
 ax1.legend(handles=legend_elements, fontsize=8, loc='upper right')
@@ -267,7 +267,7 @@ fig.suptitle(f'JM-based Feature Quality Analysis: Understanding Class Separabili
             fontsize=14, fontweight='bold')
 
 # Save figure
-output_path = f'/Users/doron/Desktop/personal/thesis/TSC/visualizations/jm_separability_analysis_{DATASET_NAME}.png'
+output_path = os.path.join(paths.FIGURES_DIR, f'jm_separability_analysis_{DATASET_NAME}.png')
 plt.savefig(output_path, dpi=300, bbox_inches='tight', facecolor='white')
 print(f"\n✓ JM separability visualization saved to: {output_path}")
 

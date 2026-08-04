@@ -186,3 +186,5 @@ yuri_data/Israel_South_2004-2014_EX_HRFI_mat/
 /results_by_num_features/          # 332 KB  — per-num-features CSVs/pickles
 /plots_averaged/                   # 1.9 MB  — averaged HAR plots
 # (figures output by TSC/visualizations/*.py now goes to paths.FIGURES_DIR — usually plots_averaged/)
+/code/TSC/visualizations/*.png     # legacy figures left in the source tree
+/code/TSC/visualizations/*.pdf

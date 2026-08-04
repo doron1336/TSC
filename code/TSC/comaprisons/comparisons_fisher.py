@@ -5,11 +5,10 @@ from skfeature.utility.construct_W import construct_W
 from sklearn.feature_selection import SelectKBest
 from sklearn.feature_selection import f_classif
 
-from utils.timit import record_duration
+from TSC.utils.timit import record_duration
 
 
 # # using mrmr as a filter method
-# os.chdir(r"C:\Users\doron\OneDrive\Desktop\thesis\TSC\handMovement\Database")
 #
 # with open("X_test_transform", "rb") as f:
 #     Rocket_output_test = pkl.load(f)

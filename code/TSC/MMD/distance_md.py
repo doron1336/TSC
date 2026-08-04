@@ -1,13 +1,13 @@
 import os
 
 import numpy as np
-from models.minirocket import fit, transform
+from TSC.models.minirocket import fit, transform
 
-from utils.retrieve_minirocket import retrieve_minirocket_data
+from TSC.utils.retrieve_minirocket import retrieve_minirocket_data
 from sklearn.metrics.pairwise import rbf_kernel
+import paths  # noqa: F401  # TSC path config (TSC_CODE_DIR, TSC_DATA_DIR, TSC_RESULTS_DIR)
 
-baseDir = "UCRArchive_2018"
-os.chdir(os.path.join(os.path.dirname(os.getcwd()), baseDir))
+ucr_dir = paths.UCR_DIR
 dataset_name: str = 'Haptics'
 DIRECTORY_NUM: int = 4
 
@@ -88,6 +88,6 @@ def trim_vector(vector, n: int):
 		raise ValueError("The input vector has fewer columns than n.")
 	return vector[:, :n]
 
-directory = os.path.join(os.path.abspath("."), dataset_name, str(DIRECTORY_NUM))
+directory = os.path.join(ucr_dir, dataset_name, str(DIRECTORY_NUM))
 print(directory)
 X_train_transform, X_test_transform, y_train, y_test = retrieve_minirocket_data(directory, dataset_name)

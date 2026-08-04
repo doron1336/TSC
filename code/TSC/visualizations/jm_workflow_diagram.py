@@ -1,3 +1,4 @@
+import os
 """
 Creates a professional workflow diagram for the JM feature selection pipeline.
 Style inspired by ROCKET and MiniROCKET papers.
@@ -6,6 +7,7 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 from matplotlib.patches import FancyBboxPatch, FancyArrowPatch
 import numpy as np
+import paths  # noqa: F401  # TSC path config
 
 # Create figure
 fig, ax = plt.subplots(figsize=(14, 10))
@@ -124,7 +126,7 @@ ax.text(0.5, 3, insight_box, ha='left', va='top', fontsize=8,
        bbox=dict(boxstyle='round,pad=0.5', facecolor='#FFF9E6', edgecolor='orange', linewidth=1.5))
 
 plt.tight_layout()
-plt.savefig('/Users/doron/Desktop/personal/thesis/TSC/visualizations/jm_workflow_diagram.png',
+plt.savefig(os.path.join(paths.FIGURES_DIR, 'jm_workflow_diagram.png'),
             dpi=300, bbox_inches='tight', facecolor='white')
 print("Workflow diagram saved to: visualizations/jm_workflow_diagram.png")
 plt.show()

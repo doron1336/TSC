@@ -26,7 +26,7 @@ from scipy.spatial.distance import pdist, squareform
 from sklearn.cluster import KMeans
 from sklearn.preprocessing import StandardScaler
 
-from utils.timit import record_duration
+from TSC.utils.timit import record_duration
 
 '''
 epsilon_factor - a parameter that controls the width of the Gaussian kernel  

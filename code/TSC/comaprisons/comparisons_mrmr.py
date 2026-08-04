@@ -6,11 +6,10 @@ import pickle as pkl
 # import matplotlib.pyplot as plt
 import pandas as pd
 from mrmr import mrmr_classif
-from utils.timit import record_duration
+from TSC.utils.timit import record_duration
 
 
 # # using mrmr as a filter method
-# os.chdir(r"C:\Users\doron\OneDrive\Desktop\thesis\TSC\handMovement\Database")
 #
 # with open("X_test_transform", "rb") as f:
 #     Rocket_output_test = pkl.load(f)

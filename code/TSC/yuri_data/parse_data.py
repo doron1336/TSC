@@ -4,8 +4,9 @@ import numpy as np
 import pandas as pd
 import scipy.io as sio
 import re
+import paths  # noqa: F401  # TSC path config
 
-os.chdir(r"C:\Users\doron\OneDrive\Desktop\thesis\TSC\yuri_data")
+os.chdir(paths.HAND_MOVEMENT_DIR)  # legacy yuri_data output; override TSC_DATA_DIR if needed
 
 DIRECTORY = "Israel_South_2004-2014_EX_HRFI_mat"
 EXCEL_HRFI = "GII_4NETA_Israel_2004-2014_SOUTH_EX_HRFI.xlsx"

@@ -8,11 +8,12 @@ import datafold.dynfold as dfold
 import datafold.pcfold as pfold
 from datafold.dynfold import LocalRegressionSelection
 from datafold.utils.plot import plot_pairwise_eigenvector
-from diffusionMaps.Diffusion_Maps import diffusionMapping
-from utils.JM import JM_flat
-from models.GA import generations
+from TSC.diffusionMaps.Diffusion_Maps import diffusionMapping
+from TSC.utils.JM import JM_flat
+from TSC.models.GA import generations
+import paths  # noqa: F401  # TSC path config
 
-os.chdir(f"C:\\Users\\doron\\OneDrive\\Desktop\\thesis\\TSC\\handMovement\\Database\\handmovement3\\1")
+os.chdir(os.path.join(paths.HAND_MOVEMENT_DIR, "Database", "handmovement3", "1"))
 dataset_name = "handmovement"
 # miniRocket section
 # filename_train = os.path.abspath(".") + "\\osuleaf_train"

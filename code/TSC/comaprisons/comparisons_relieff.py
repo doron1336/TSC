@@ -3,7 +3,6 @@ from sklearn.neighbors import KDTree
 
 
 # using RELIEFF as a filter method
-# os.chdir(r"C:\Users\doron\OneDrive\Desktop\thesis\TSC\handMovement\Database")
 
 
 class ReliefF(object):

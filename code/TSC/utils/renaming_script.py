@@ -4,7 +4,7 @@ from typing import Any
 
 import numpy as np
 
-from models.minirocket import fit, transform
+from TSC.models.minirocket import fit, transform
 
 baseDir = "UCRArchive_2018"
 # List the contents of the directory with full paths

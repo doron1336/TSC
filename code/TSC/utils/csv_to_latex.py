@@ -1,8 +1,10 @@
+import os
 import pandas as pd
 import re
+import paths  # noqa: F401  # TSC path config
 
 # Read the CSV file
-df = pd.read_csv('/Users/doron/Desktop/personal/thesis/TSC/UCRArchive_2018/HAR_datasets/scores_dataframe_fold_final.csv')
+df = pd.read_csv(os.path.join(paths.UCR_DIR, 'HAR_datasets', 'scores_dataframe_fold_final.csv'))
 
 # Remove the Type column since all datasets are HAR
 df_without_type = df.drop(columns=['Type'])
@@ -56,7 +58,7 @@ def format_value(x):
 df_tex = df_without_type.applymap(format_value)
 
 # Creating a well-formatted table with cells
-output_file = '/Users/doron/Desktop/personal/thesis/TSC/utils/HAR_table.tex'
+output_file = os.path.join(paths.TABLES_DIR, 'HAR_table.tex')
 with open(output_file, 'w') as f:
     num_cols = len(df_tex.columns)
 
@@ -127,7 +129,7 @@ def format_value_duration(x):
 
 df_tex_duration = df_without_type.applymap(format_value_duration)
 
-output_file_duration = '/Users/doron/Desktop/personal/thesis/TSC/utils/HAR_table_duration.tex'
+output_file_duration = os.path.join(paths.TABLES_DIR, 'HAR_table_duration.tex')
 with open(output_file_duration, 'w') as f:
     num_cols = len(df_tex_duration.columns)
 

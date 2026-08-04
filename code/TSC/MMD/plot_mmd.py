@@ -4,20 +4,19 @@ import pickle
 
 import matplotlib.pyplot as plt
 import numpy as np
+import paths  # noqa: F401  # TSC path config (TSC_CODE_DIR, TSC_DATA_DIR, TSC_RESULTS_DIR)
 
-baseDir = "UCRArchive_2018"
+ucr_dir = paths.UCR_DIR
 har_dataset = 'HAR_datasets'
 without_GA = 'without_GA'
-
-os.chdir(os.path.join(os.path.dirname(os.getcwd()), baseDir))
 HAR_DATASETS = ['GestureMidAirD3', 'GestureMidAirD2', 'UWaveGestureLibraryAll', 'GesturePebbleZ2', 'AllGestureWiimoteX',
                 'CricketX', 'CricketY']
 percentages = np.arange(10, 101, 10)  # 10%, ..., 100%
 
 DIRECTORY_NUM: int = 3
 for dataset_name in HAR_DATASETS:
-    without_har = os.path.join(os.path.abspath("."), dataset_name)
-    base_dir = os.path.join(os.path.abspath("."), har_dataset, dataset_name)
+    without_har = os.path.join(ucr_dir, dataset_name)
+    base_dir = os.path.join(ucr_dir, har_dataset, dataset_name)
     directory = os.path.join(base_dir, str(DIRECTORY_NUM))
     mmd_dir = os.path.join(directory, 'MMD')
     # Load the saved .pkl file
@@ -63,7 +62,7 @@ for dataset_name in HAR_DATASETS:
     plt.tight_layout()
     plt.subplots_adjust(bottom=0.2)  # Increase bottom margin to prevent legend cutoff
 
-    output_path = os.path.join('/Users/doron/Desktop/ddd/MMD', f'{dataset_name}_plot.png')
+    output_path = os.path.join(paths.FIGURES_DIR, f'{dataset_name}_plot.png')
     plt.savefig(output_path)  # Save as PNG (or use .pdf, .svg, etc.)
 
     # Show plot

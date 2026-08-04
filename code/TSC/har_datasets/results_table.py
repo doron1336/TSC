@@ -5,13 +5,13 @@ import pickle
 
 import pandas as pd
 
-from AlgorithmManager import AlgorithmManager
-from utils.datasets_descriptions import fetch_description
+from TSC.AlgorithmManager import AlgorithmManager
+from TSC.utils.datasets_descriptions import fetch_description
+import paths  # noqa: F401  # TSC path config (TSC_CODE_DIR, TSC_DATA_DIR, TSC_RESULTS_DIR)
 
 logging.basicConfig(level=logging.INFO)
-path = '/Users/doron/Desktop/personal/thesis/TSC/UCRArchive_2018'
-os.chdir(path)
-HAR_directory = os.path.join(os.getcwd(), "HAR_datasets")
+ucr_dir = paths.UCR_DIR
+HAR_directory = os.path.join(ucr_dir, "HAR_datasets")
 
 # List the contents of the directory with full paths
 datasets = ["GestureMidAirD3", "GestureMidAirD2", "GesturePebbleZ2", "UWaveGestureLibraryAll",
@@ -20,7 +20,7 @@ datasets = ["GestureMidAirD3", "GestureMidAirD2", "GesturePebbleZ2", "UWaveGestu
 FEATURES_ARRAY = range(10, 211, 20)
 columns = ["Algo_name", "Dataset_name", "All_features"] + list(range(10, 211, 20)) + ["Type"]
 
-miniRocket_results = pd.read_csv('/Users/doron/Desktop/personal/thesis/TSC/datasets_scores.csv')
+miniRocket_results = pd.read_csv(os.path.join(ucr_dir, 'datasets_scores.csv'))
 
 
 def algo_results_manager(dataset_path: str, target_subfolder: str, file_name: str) -> pickle:

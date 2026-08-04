@@ -3,7 +3,7 @@ import pickle
 
 import numpy as np
 
-from models.minirocket import fit, transform
+from TSC.models.minirocket import fit, transform
 
 
 def retrieve_minirocket_data(directory: str, dataset_name: str):

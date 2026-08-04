@@ -6,23 +6,22 @@ import numpy as np
 from sklearn.manifold import TSNE
 from sklearn.preprocessing import StandardScaler
 
-from MMD.distance_md import trim_and_rocket
-from utils.JM import JM_flat
-from utils.file_system import save_to_pickle
-from utils.retrieve_minirocket import retrieve_minirocket_data, load_ucr_dataset
-from utils.topK_indices import calc_score
+from TSC.MMD.distance_md import trim_and_rocket
+from TSC.utils.JM import JM_flat
+from TSC.utils.file_system import save_to_pickle
+from TSC.utils.retrieve_minirocket import retrieve_minirocket_data, load_ucr_dataset
+from TSC.utils.topK_indices import calc_score
+import paths  # noqa: F401  # TSC path config (TSC_CODE_DIR, TSC_DATA_DIR, TSC_RESULTS_DIR)
 
-baseDir = "UCRArchive_2018"
+ucr_dir = paths.UCR_DIR
 without_GA = 'without_GA'
 har_dataset = 'HAR_datasets'
 DIRECTORY_NUM: int = 3
-
-os.chdir(os.path.join(os.path.dirname(os.getcwd()), baseDir))
 HAR_DATASETS = ['GestureMidAirD3', 'GestureMidAirD2', 'UWaveGestureLibraryAll', 'GesturePebbleZ2', 'AllGestureWiimoteX',
                 'CricketX', 'CricketY']
 for dataset_name in HAR_DATASETS:
-    without_har = os.path.join(os.path.abspath("."), dataset_name)
-    base_dir = os.path.join(os.path.abspath("."), har_dataset, dataset_name)
+    without_har = os.path.join(ucr_dir, dataset_name)
+    base_dir = os.path.join(ucr_dir, har_dataset, dataset_name)
     directory = os.path.join(base_dir, str(DIRECTORY_NUM))
     mmd_dir = os.path.join(directory, 'MMD')
     print(directory)
